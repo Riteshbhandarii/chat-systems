@@ -1,0 +1,19 @@
+<script>
+    const socket = new WebSocket("ws://localhost:8000/ws/messaging/testroom/");
+
+    socket.onopen = function(event) {
+        console.log("WebSocket is connected.");
+    };
+
+    socket.onmessage = function(event) {
+        console.log("Message from server:", event.data);
+    };
+
+    socket.onerror = function(error) {
+        console.log("WebSocket Error:", error);
+    };
+
+    socket.onclose = function(event) {
+        console.log("WebSocket is closed.", event);
+    };
+</script>

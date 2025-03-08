@@ -1,8 +1,9 @@
-from django import re_path
+# messaging/routing.py
+from django.urls import re_path  
 from . import consumers
 
-# defining URL pattern
-websocket_url = [
-    # connects with chat consumer class, to handle websocket connection
-    re_path(r'ws/chat/(?P<chat_room>\w+)/$', consumers.ChatConsumer.as_asgi()), # Room-based chat
+# Defining URL pattern
+websocket_urlpatterns = [
+    # Connects with the ChatConsumer class to handle the WebSocket connection
+    re_path(r'ws/messaging/(?P<chat_room>\w+)/$', consumers.ChatConsumer.as_asgi()),  # Room-based chat
 ]

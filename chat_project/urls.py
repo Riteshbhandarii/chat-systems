@@ -18,8 +18,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("messaging/", include("messaging.urls")), # links to messaging app URLs
-    path("ws/", include("messaging.routing")),
-]
+    path("messaging/", include("messaging.urls")), 
+    ]
