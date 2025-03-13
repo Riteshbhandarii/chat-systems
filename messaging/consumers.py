@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.exceptions import DenyConnection
 from .models import Groupchat, Message
 from django.contrib.auth.models import User
+from channels.exceptions import DenyConnection
 
 class ChatConsumer(AsyncWebsocketConsumer):
     # async handles multiple tasks at the same time
@@ -60,19 +61,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
             Message.objects.create(sender = self.scope["user"], content = message, group = group_chat)
        #  saving the message for one on one chat to database
         else:
-             users_ids = room_name.split("_"):
+             user_ids = room_name.split("_")
              receiver_id = int(user_ids[1]) if int(user_ids[0]) == self.scope["user"].id else int(user_ids[0])
              receiver = User.objects.get(id=receiver_id)
+
              
               # save the message to the database
-             Message.objects.create(sender = self.scope["user"], content = message)
+             Message.objects.create(sender = self.scope["user"], content = message, receiver = receiver)
        
         
-        # Respond back with a simple acknowledgment message
+     # Respond back with a simple acknowledgment message
         await self.send(text_data=json.dumps({
-            'message': 'Message received!'
-        }))
+    'message': 'Message received!'
+}))
+
+# Broadcasting the message to all users in the room
+        await self.channel_layer.group_send(
+    room_name,
+    {
+        'type': 'chat_message',
+        'message': message,
+        'sender': self.scope["user"].username
+    }
+)
+
+
+class DenyConnection(Exception):
+    pass
 
     async def disconnect(self, close_code):
-            print("WebSocket disconnected")
-            pass
+        room_name = self.scope["url_route"]["kwargs"]["chat_room"]
+        await self.channel_layer.group_discard(room_name, self.channel_name)
+        print("WebSocket disconnected")
+            
