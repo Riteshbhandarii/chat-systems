@@ -48,22 +48,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print("Unauthenticated user, Access denied.")
             raise DenyConnection("Log in to join the chat.")
 
-    async def disconnect(self, close_code):
-        print("WebSocket disconnected")
-        pass
 
     async def receive(self, text_data):
-        # Receive the message sent by the user
-        text_data_json = json.loads(text_data)  # Fixed this line to properly load the JSON data
-        
-        # Extract the message content from the parsed data
-        message = text_data_json['message']
-        
-        # You can now use the 'message' variable to save it to the database or perform other actions
-        # For example, saving the message to the database:
-        # Message.objects.create(sender=self.scope['user'], receiver=receiver, content=message)
+        # recieving the message sent by the user
+        message = json.loads(text_data)["message"]
+        room_name = self.scope["url_route"]["kwargs"]["chat_room"]
+
+        # saving the message for groupchat to the database
+        if room_name.startswith("group_"):
+            group_chat = Groupchat.objects.get(name= room_name )
+            Message.objects.create(sender = self.scope["user"], content = message, group = group_chat)
+       #  saving the message for one on one chat to database
+        else:
+             users_ids = room_name.split("_"):
+             receiver_id = int(user_ids[1]) if int(user_ids[0]) == self.scope["user"].id else int(user_ids[0])
+             receiver = User.objects.get(id=receiver_id)
+             
+              # save the message to the database
+             Message.objects.create(sender = self.scope["user"], content = message)
+       
         
         # Respond back with a simple acknowledgment message
         await self.send(text_data=json.dumps({
             'message': 'Message received!'
         }))
+
+    async def disconnect(self, close_code):
+            print("WebSocket disconnected")
+            pass
