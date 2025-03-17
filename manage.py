@@ -20,5 +20,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-DATABASE_PASSWORD=your_password_here
+
 
