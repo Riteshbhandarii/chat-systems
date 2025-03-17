@@ -4,6 +4,10 @@ from channels.exceptions import DenyConnection
 from .models import Groupchat, Message
 from django.contrib.auth.models import User
 from channels.exceptions import DenyConnection
+import redis
+
+# redis connection, db = 0 using default database for now
+redis_connection = redis.Redis(host = "localhost", port = 6379, db =0)
 
 class ChatConsumer(AsyncWebsocketConsumer):
     # async handles multiple tasks at the same time
@@ -35,16 +39,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                     # Adding user to private chat room
                     await self.channel_layer.group_add(room_name, self.channel_name)
+                    
+
+                    # track users in room 
+                    redis_connection.sadd(f'room:{room_name}', self.scope["user"].id)
+                    if room_name.startswith("group_"):
+                        print(f"Autheticated user {self.scope["user"].username} connected to group {room_name}")
+                    else:
+                          print(f"Authenticated user {self.scope['user'].username} connected to private chat {room_name}")
+                    
+                    await self.accept()
 
             except Groupchat.DoesNotExist:
                 raise DenyConnection("Room does not exist")
-            # log connection type
-            if room_name.startswith("group_"):
-                print(f"Authenticated user {self.scope['user'].username} connected to group {room_name}")
-            else:
-                # print output if it is connecting to private chat
-                print(f"Authenticated user {self.scope['user'].username} connected to private chat {room_name}")
-            await self.accept()
+            
         else:
             print("Unauthenticated user, Access denied.")
             raise DenyConnection("Log in to join the chat.")
@@ -85,12 +93,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     }
 )
 
-
-class DenyConnection(Exception):
-    pass
-
     async def disconnect(self, close_code):
         room_name = self.scope["url_route"]["kwargs"]["chat_room"]
         await self.channel_layer.group_discard(room_name, self.channel_name)
         print("WebSocket disconnected")
-            
+
+class DenyConnection(Exception):
+    pass

@@ -56,7 +56,17 @@ CHANNEL_LAYERS = {
 
 
 
-
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "chat_project",
+        "USER": "ritesh",
+        "PASSWORD": "iex2ubie1314",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
+    
+    }
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
