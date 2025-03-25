@@ -22,3 +22,10 @@ def messaging_list(request):
     messages = Message.objects.all() # retrieves all the Message objects from the database
     return render(request, "messaging_list.html", {"messages": messages}) # desplays the messaage from db to html 
 
+from django.shortcuts import render
+
+def login_view(request):
+    return render(request, "messaging/login.html")
+
+def chat_view(request):
+    return render(request, "messaging/chat_room.html")  # Correct path for chat_room.html

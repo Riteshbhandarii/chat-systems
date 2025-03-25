@@ -55,19 +55,23 @@ CHANNEL_LAYERS = {
     },
 }
 
+import os
 from dotenv import load_dotenv
+
+# Load environment variables from the .env file
 load_dotenv()
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "chat_project",
-        "USER": "ritesh",
-        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+        "NAME": "chat_project",  # Your database name
+        "USER": "ritesh",  # Your PostgreSQL username
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),  # Get password from .env
+        "HOST": "127.0.0.1",  # Localhost
+        "PORT": "5432",  # Default PostgreSQL port
     }
 }
+
 
 
 MIDDLEWARE = [
@@ -101,15 +105,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "chat_project.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
 
 
 # Password validation

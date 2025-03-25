@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        #chatroom {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        #message-input {
+            width: 80%;
+            padding: 5px;
+        }
+
+        #send-button {
+            padding: 5px 10px;
+        }
+
+        p {
+            font-family: Arial, sans-serif;
+            margin: 0 0 10px;
+        }
+
+        strong {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Room: {{ room_name }}</h1>
+
+    <div id="chatroom"></div>
+    <input type="text" id="message-input" placeholder="Type a message">
+    <button id="send-button">Send</button>
+
+    <script>
+        const room_name = "{{ room_name }}";  // Pass room_name dynamically
+        const socket = new WebSocket(`ws://localhost:8000/ws/messaging/${room_name}/`);
+
+        // Getting DOM elements
+        const chatroom = document.getElementById("chatroom");
+        const messageInput = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+
+        socket.onopen = function(event) {
+            console.log("WebSocket is connected.");
+        };
+
+        socket.onmessage = function(event) {
+            // Parse incoming message data (JSON)
+            const data = JSON.parse(event.data);
+
+            // Create a new <p> element to display the message
+            const messageElement = document.createElement("p");
+
+            // Format message with sender's name and the message content
+            messageElement.innerHTML = `<strong>${escapeHtml(data.sender)}:</strong> ${escapeHtml(data.message)}`;
+
+            // Append message to the chatroom
+            chatroom.appendChild(messageElement);
+
+            // Scroll to the bottom of the chatroom
+            chatroom.scrollTop = chatroom.scrollHeight;
+        };
+
+        // Send message when the Send button is clicked
+        sendButton.onclick = function() {
+            const message = messageInput.value.trim();
+
+            if (message !== "") {
+                // Send the message to the server
+                socket.send(JSON.stringify({ message: message }));
+
+                // Clear the input field
+                messageInput.value = "";
+            }
+        };
+
+        socket.onerror = function(error) {
+            console.log("WebSocket Error:", error);
+        };
+
+        socket.onclose = function(event) {
+            console.log("WebSocket is closed.", event);
+
+            // Optional: Attempt to reconnect after some delay
+            setTimeout(() => {
+                socket = new WebSocket(`ws://localhost:8000/ws/messaging/${room_name}/`);
+            }, 5000);  // Reconnect after 5 seconds
+        };
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function (char) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;',
+                }[char];
+            });
+        }
+    </script>
+</body>
+</html>

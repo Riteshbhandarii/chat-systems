@@ -17,9 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from messaging.views import login_view, chat_view
+
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("messaging/", include("messaging.urls")), 
-    ]
+    path('admin/', admin.site.urls),
+    path('messaging/', include('messaging.urls')),
+    path('', login_view, name='home'),  # Root URL now has a name
+]
+

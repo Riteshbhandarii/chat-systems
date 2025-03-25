@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import send_message, messaging_list
-from . import views
+from .views import login_view, chat_view
 
 urlpatterns = [
-    path("send/", send_message, name="send_message"), # sending messages
-    path("", messaging_list, name="messaging_list"), # viewing messages
-    ]
+    path('login/', login_view, name='login'),
+    path('chat/', chat_view, name='chat'),
+]
