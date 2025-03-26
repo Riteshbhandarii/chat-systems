@@ -1,31 +1,45 @@
-#messaging/views.py
 from django.shortcuts import render, redirect
-from django.http import JsonResponse 
-from .forms import MessageForm
-from .models import Message
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from .forms import RegisterForm
 
-# Create your views here.
-
-def send_message(request):
-    if request.method == "POST": # checking if the request is POST Request
-        form = MessageForm(request.POST) # holds the uses message temporarily to be processed
-        if form.is_valid(): # checks if form/users output is valid
-            form.save() #saves the message to db
-            if request.is_ajax(): # checks if the request is AJAX request 
-                return JsonResponse({ 
-                    "content": form.cleaned_data["content"],
-                    "sender" : form.cleaned_data["sender"].username,
-                }) # sends message to other user/users
-            return JsonResponse({"error": "Invalid request"}, status= 400) 
-
-def messaging_list(request): 
-    messages = Message.objects.all() # retrieves all the Message objects from the database
-    return render(request, "messaging_list.html", {"messages": messages}) # desplays the messaage from db to html 
-
-from django.shortcuts import render
+def register_view(request):
+    # Only redirect if user is authenticated AND trying to access register page
+    if request.user.is_authenticated and request.path == '/register/':
+        return render(request, 'messaging/register.html', {'form': RegisterForm()})
+    
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = RegisterForm()
+    
+    return render(request, 'messaging/register.html', {'form': form})
 
 def login_view(request):
+    if request.user.is_authenticated:
+        # Show the login page but with a "you're already logged in" message
+        return render(request, "messaging/login.html", {"message": "You are already logged in"})
+    
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        if not username or not password:
+            return render(request, "messaging/login.html", {"error": "Username and password are required."})
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            # After login, show register page but don't redirect
+            return render(request, 'messaging/register.html', {'form': RegisterForm()})
+        else:
+            return render(request, "messaging/login.html", {"error": "Invalid credentials"})
+
     return render(request, "messaging/login.html")
 
-def chat_view(request):
-    return render(request, "messaging/chat_room.html")  # Correct path for chat_room.html
+def logout_view(request):
+    logout(request)
+    return redirect('login')

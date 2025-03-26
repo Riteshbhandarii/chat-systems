@@ -17,7 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from messaging.views import login_view, chat_view
+from messaging.views import login_view, register_view
 
 
 

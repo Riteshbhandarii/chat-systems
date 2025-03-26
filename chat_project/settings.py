@@ -55,6 +55,8 @@ CHANNEL_LAYERS = {
     },
 }
 
+DEBUG = True
+ 
 import os
 from dotenv import load_dotenv
 
@@ -62,15 +64,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "chat_project",  # Your database name
-        "USER": "ritesh",  # Your PostgreSQL username
-        "PASSWORD": os.getenv("DATABASE_PASSWORD"),  # Get password from .env
-        "HOST": "127.0.0.1",  # Localhost
-        "PORT": "5432",  # Default PostgreSQL port
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'chat_project',  # Your database name
+        'USER': 'chat_user',     # Your database user
+        'PASSWORD': 'your_password_here',  # Use the correct password
+        'HOST': 'localhost',     # Database host (localhost for local setup)
+        'PORT': '5432',          # Default PostgreSQL port
     }
 }
+
 
 
 
@@ -88,19 +91,21 @@ ROOT_URLCONF = "chat_project.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'messaging/templates')],  # Point to messaging/templates
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = "chat_project.wsgi.application"
 
