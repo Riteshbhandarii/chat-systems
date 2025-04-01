@@ -14,6 +14,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Groupchat = apps.get_model('messaging', 'Groupchat')
         Message = apps.get_model('messaging', 'Message')
         Groupmchatmessage = apps.get_model('messaging', 'Groupmchatmessage')
+        FriendRequest = apps.get_model('messaging', 'FriendRequest')  # Added FriendRequest model
+        Friend = apps.get_model('messaging', 'Friend')  # Added Friend model
 
         room_name = self.scope["url_route"]["kwargs"]["chat_room"]
         
@@ -56,6 +58,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Groupchat = apps.get_model('messaging', 'Groupchat')
         Message = apps.get_model('messaging', 'Message')
         Groupmchatmessage = apps.get_model('messaging', 'Groupmchatmessage')
+        FriendRequest = apps.get_model('messaging', 'FriendRequest')  # Added FriendRequest model
+        Friend = apps.get_model('messaging', 'Friend')  # Added Friend model
 
         message_data = json.loads(text_data)
         message = message_data["message"]
@@ -69,7 +73,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     content=message, 
                     group_chat=group_chat
                 )
-            else:
+            elif message_data["message_type"] == "send_friend_request":  # New block for sending friend requests
+                receiver_username = message_data["receiver"]
+                receiver = User.objects.get(username=receiver_username)
+                FriendRequest.objects.create(sender=self.scope["user"], receiver=receiver)
+                await self.send(text_data=json.dumps({
+                    'message': f"Friend request sent to {receiver_username}",
+                    'type': 'friend_request'
+                }))
+            elif message_data["message_type"] == "accept_friend_request":  # New block for accepting friend requests
+                friend_request_id = message_data["friend_request_id"]
+                friend_request = FriendRequest.objects.get(id=friend_request_id)
+                Friend.objects.create(user1=self.scope["user"], user2=friend_request.sender)
+                Friend.objects.create(user1=friend_request.sender, user2=self.scope["user"])
+                friend_request.delete()  # Remove the request after acceptance
+                await self.send(text_data=json.dumps({
+                    'message': f"You are now friends with {friend_request.sender.username}",
+                    'type': 'friend_accepted'
+                }))
+            else:  # Normal chat message flow
                 user_ids = room_name.split("_")
                 receiver_id = int(user_ids[1]) if int(user_ids[0]) == self.scope["user"].id else int(user_ids[0])
                 receiver = User.objects.get(id=receiver_id)

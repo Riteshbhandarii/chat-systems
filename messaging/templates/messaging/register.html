@@ -5,37 +5,27 @@
     <h2>Create Your Account</h2>
     <form method="post" class="register-form">
         {% csrf_token %}
+        
         <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input type="text" name="first_name" id="first_name" required
-             placeholder="Enter your first name">
-        </div>
-        <div class="form-group">
-            <label for="last_name">Last Name</label>
-            <input type="text" name="last_name" id="last_name" required
-             placeholder="Enter your last name">
-        </div>
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" name="username" id="username" required
-             placeholder="Choose a unique username">
-        </div>
-        <div class="form-group">
-            <label for="email">Email (Optional)</label>
-            <input type="email" name="email" id="email"
-             placeholder="Enter your email address">
-        </div>
-        <div class="form-group">
-            <label for="password1">Password</label>
-            <input type="password" name="password1" id="password1" required
-             placeholder="Create a strong password">
-        </div>
-        <div class="form-group">
-            <label for="password2">Confirm Password</label>
-            <input type="password" name="password2" id="password2" required
-             placeholder="Repeat your password">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
         </div>
         
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">Email (Optional)</label>
+            {{ form.email }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password_confirm.id_for_label }}">Confirm Password</label>
+            {{ form.password_confirm }}
+        </div>
+
         {% if form.errors %}
         <div class="error-messages">
             {% for field in form %}
@@ -51,9 +41,5 @@
         
         <button type="submit" class="register-button">Register</button>
     </form>
-    
-    <div class="login-link">
-        Already have an account? <a href="{% url 'login' %}">Log in</a>
-    </div>
 </div>
 {% endblock %}

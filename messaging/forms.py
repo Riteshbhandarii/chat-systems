@@ -1,15 +1,19 @@
-# messaging/forms.py 
+from django import forms
+from django.contrib.auth.models import User
 
-from django import forms # imports forms module from django
-from .models import Message #imports Message model from models.py
+class RegisterForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput())
+    password_confirm = forms.CharField(widget=forms.PasswordInput())
 
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
 
-class MessageForm(forms.ModelForm): # creates form based on models fields. 
-    class Meta: # configuration for the form
-        model = Message # form is associated with the Message
-        fields = ["sender", "receiver", "content"] # users options
-        
-class RegisterForm(forms.Form):
-    username = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput)
-    email = forms.EmailField()
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+
+        if password != password_confirm:
+            raise forms.ValidationError("Passwords do not match.")
+        return cleaned_data

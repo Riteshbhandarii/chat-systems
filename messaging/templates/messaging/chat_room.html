@@ -1,80 +1,40 @@
 {% extends 'messaging/base.html' %}
+
 {% block content %}
-    <h1>Chat Room: {{ room_name }}</h1>
+    <h1>Welcome to the {{ room_name }} chat room!</h1>
 
-    <div id="chatroom"></div>
-    <input type="text" id="message-input" placeholder="Type a message">
-    <button id="send-button">Send</button>
-{% endblock %}
+    <!-- Logout Button -->
+    <a href="{% url 'logout' %}" class="logout-button">Logout</a>
 
-{% block extra_js %}
+    <div id="chat-box">
+        <!-- Messages will be displayed here -->
+    </div>
+
+    <input type="text" id="chat-message-input" placeholder="Type your message...">
+    
     <script>
-        const room_name = "{{ room_name }}";  // Pass room_name dynamically
-        let socket = new WebSocket(`ws://localhost:8000/ws/messaging/${room_name}/`);
+        const roomName = "{{ room_name }}";
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/messaging/' + roomName + '/'
+        );
 
-        // Getting DOM elements
-        const chatroom = document.getElementById("chatroom");
-        const messageInput = document.getElementById("message-input");
-        const sendButton = document.getElementById("send-button");
-
-        socket.onopen = function(event) {
-            console.log("WebSocket is connected.");
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-box').innerHTML += '<p>' + data.message + '</p>';
         };
 
-        socket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-
-            // Create a new <p> element to display the message
-            const messageElement = document.createElement("p");
-            messageElement.classList.add("message");  // Add a message class for styling
-
-            // Format message with sender's name and the message content
-            messageElement.innerHTML = `<strong>${escapeHtml(data.sender)}:</strong> ${escapeHtml(data.message)}`;
-
-            // Append message to the chatroom
-            chatroom.appendChild(messageElement);
-
-            // Scroll to the bottom of the chatroom
-            chatroom.scrollTop = chatroom.scrollHeight;
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
         };
 
-        // Send message when the Send button is clicked
-        sendButton.onclick = function() {
-            const message = messageInput.value.trim();
-
-            if (message !== "") {
-                // Send the message to the server
-                socket.send(JSON.stringify({ message: message }));
-
-                // Clear the input field
-                messageInput.value = "";
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // Enter key
+                const messageInputDom = document.querySelector('#chat-message-input');
+                const message = messageInputDom.value;
+                chatSocket.send(JSON.stringify({'message': message}));
+                messageInputDom.value = '';
             }
         };
-
-        socket.onerror = function(error) {
-            console.log("WebSocket Error:", error);
-        };
-
-        socket.onclose = function(event) {
-            console.log("WebSocket is closed.", event);
-
-            // Optional: Attempt to reconnect after some delay
-            setTimeout(() => {
-                socket = new WebSocket(`ws://localhost:8000/ws/messaging/${room_name}/`);
-            }, 5000);  // Reconnect after 5 seconds
-        };
-
-        // Escape HTML to prevent XSS
-        function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, function (char) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;',
-                }[char];
-            });
-        }
     </script>
 {% endblock %}

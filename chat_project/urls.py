@@ -23,7 +23,6 @@ from messaging.views import login_view, register_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('messaging/', include('messaging.urls')),
-    path('', login_view, name='home'),  # Root URL now has a name
+    path('', include('messaging.urls')),  # Include messaging URLs at the root
 ]
 
