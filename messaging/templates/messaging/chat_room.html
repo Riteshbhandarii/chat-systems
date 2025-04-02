@@ -1,40 +1,161 @@
 {% extends 'messaging/base.html' %}
-
 {% block content %}
-    <h1>Welcome to the {{ room_name }} chat room!</h1>
-
-    <!-- Logout Button -->
-    <a href="{% url 'logout' %}" class="logout-button">Logout</a>
-
-    <div id="chat-box">
-        <!-- Messages will be displayed here -->
+<div class="chat-container">
+  <!-- Top Header -->
+  <div class="chat-header">
+    <div class="left">
+      <button id="profile-button" onclick="goToProfile()">Profile</button>
     </div>
+    <div class="center">
+      <h2></h2>
+    </div>
+    <div class="right">
+      <button id="logout-button" onclick="window.location.href='{% url 'logout' %}'">Logout</button>
+    </div>
+  </div>
+  
+  <!-- Chat Box Area with blue background -->
+  <div id="chat-box" class="chat-box">
+    <!-- Messages will appear here -->
+    <div id="message-input-section">
+      <input type="text" id="chat-message-input" placeholder="Type your message..." />
+      <button id="send-button">Send</button>
+    </div>
+  </div>
 
-    <input type="text" id="chat-message-input" placeholder="Type your message...">
-    
-    <script>
-        const roomName = "{{ room_name }}";
-        const chatSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/messaging/' + roomName + '/'
-        );
+<script>
+  function goToProfile() {
+    window.location.href = "/profile/";
+  }
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-box').innerHTML += '<p>' + data.message + '</p>';
-        };
+  // WebSocket connection to static path without a room name
+  const chatSocket = new WebSocket(`ws://${window.location.host}/ws/messaging/`);
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
+  chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const chatBox = document.getElementById("chat-box");
+    const messageElement = document.createElement("div");
+    messageElement.textContent = data.message;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  };
 
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // Enter key
-                const messageInputDom = document.querySelector('#chat-message-input');
-                const message = messageInputDom.value;
-                chatSocket.send(JSON.stringify({'message': message}));
-                messageInputDom.value = '';
-            }
-        };
-    </script>
+  chatSocket.onclose = function () {
+    console.error("WebSocket closed unexpectedly");
+  };
+
+  document.getElementById("send-button").onclick = function () {
+    sendMessage();
+  };
+
+  document.getElementById("chat-message-input").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  });
+
+  function sendMessage() {
+    const messageInput = document.getElementById("chat-message-input");
+    const message = messageInput.value;
+    if (message.trim() !== "") {
+      chatSocket.send(JSON.stringify({ message: message }));
+      messageInput.value = "";
+    }
+  }
+</script>
+
+<style>
+  /* Ensure overall background is white */
+  body {
+    background-color: white;
+  }
+
+  /* Overall chat container */
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: white;
+  }
+  
+  /* Header */
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    color: black;
+    padding: 15px;
+    position: relative;
+  }
+  
+  /* Logout Button position */
+  .chat-header .right {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+  }
+  
+  /* Logout button styling */
+  #logout-button {
+    background-color: #000000;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  /* Profile button styling */
+  #profile-button {
+    background-color: #000000;
+    color: rgb(247, 242, 242);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  /* Chat Box with blue background */
+  #chat-box {
+    flex-grow: 1;
+    padding: 15px;
+    background-color: rgb(232, 232, 234); /* Blue background */
+    color: rgb(205, 3, 3);
+    border-radius: 8px;
+    margin: 15px auto; /* Centers the chat box horizontally */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    height: 20vh; /* Even smaller height */
+    width: 50%; /* Width remains the same */
+    display: flex;
+    flex-direction: column-reverse; /* Keeps the latest messages at the bottom */
+  }
+
+  /* Message Input Section with white background */
+  #message-input-section {
+    display: flex;
+    margin-top: auto;
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  /* Chat Message Input Field with white background */
+  #chat-message-input {
+    flex-grow: 1;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    background-color: white;
+    color: black;
+  }
+  
+  /* Focus effect on input field */
+  #chat-message-input:focus {
+    border-color: #4a69bd;
+  }
+</style>
 {% endblock %}
