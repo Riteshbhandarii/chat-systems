@@ -10,11 +10,32 @@
       <h2></h2>
     </div>
     <div class="right">
+      <button id="contacts-button" onclick="toggleContacts()">Contacts</button>
       <button id="logout-button" onclick="window.location.href='{% url 'logout' %}'">Logout</button>
     </div>
   </div>
   
-  <!-- Chat Box Area with blue background -->
+  <!-- Contacts Section -->
+  <div id="contacts-section" class="contacts-section" style="display: none;">
+    <h3>Your Contacts</h3>
+    
+    <form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
+      <input type="text" id="search-query" name="q" placeholder="Search for users..." />
+      <button type="submit">Search</button>
+    </form>
+    
+    <div id="contacts-list">
+      <!-- Contacts will be dynamically populated here -->
+    </div>
+    
+    <!-- Pending Friend Requests -->
+    <h3>Pending Friend Requests</h3>
+    <div id="pending-requests">
+      <!-- Pending requests will be dynamically populated here -->
+    </div>
+  </div>
+
+  <!-- Chat Box Area -->
   <div id="chat-box" class="chat-box">
     <!-- Messages will appear here -->
     <div id="message-input-section">
@@ -24,11 +45,151 @@
   </div>
 
 <script>
+  // Function to go to Profile page
   function goToProfile() {
     window.location.href = "/profile/";
   }
 
-  // WebSocket connection to static path without a room name
+  // Toggle Contacts Section visibility
+  function toggleContacts() {
+    const contactsSection = document.getElementById("contacts-section");
+    if (contactsSection.style.display === "none") {
+      contactsSection.style.display = "block";
+      fetchContacts();
+      fetchPendingRequests();
+    } else {
+      contactsSection.style.display = "none";
+    }
+  }
+
+  // Fetch contacts from the server and populate the list
+  function fetchContacts() {
+    fetch('/contacts/')
+      .then(response => response.json())
+      .then(data => {
+        const contactsList = document.getElementById("contacts-list");
+        contactsList.innerHTML = '';
+        data.users.forEach(user => {
+          const contactElement = document.createElement("div");
+          contactElement.textContent = user.username;
+          contactElement.classList.add('contact-item');
+          
+          const friendRequestButton = document.createElement("button");
+          friendRequestButton.textContent = "Add";
+          friendRequestButton.classList.add('add-button');
+          friendRequestButton.onclick = function() {
+            sendFriendRequest(user.id);
+          };
+          contactElement.appendChild(friendRequestButton);
+          
+          contactsList.appendChild(contactElement);
+        });
+      })
+      .catch(error => console.error("Error fetching contacts:", error));
+  }
+
+  // Fetch pending friend requests from the server and populate the list
+  function fetchPendingRequests() {
+    fetch('/pending_friend_requests/')
+      .then(response => response.json())
+      .then(data => {
+        const pendingRequestsList = document.getElementById("pending-requests");
+        pendingRequestsList.innerHTML = '';
+        if (data.requests && data.requests.length > 0) {
+          data.requests.forEach(request => {
+            const requestElement = document.createElement("div");
+            requestElement.textContent = `Friend request from ${request.sender_username}`;
+            requestElement.classList.add('pending-request-item');
+            
+            const acceptButton = document.createElement("button");
+            acceptButton.textContent = "Accept";  
+            acceptButton.classList.add('accept-button');
+            acceptButton.onclick = function() {
+              acceptFriendRequest(request.id);
+            };
+            requestElement.appendChild(acceptButton);
+
+            const rejectButton = document.createElement("button");
+            rejectButton.textContent = "Reject";  
+            rejectButton.classList.add('reject-button');
+            rejectButton.onclick = function() {
+              rejectFriendRequest(request.id);
+            };
+            requestElement.appendChild(rejectButton);
+
+            pendingRequestsList.appendChild(requestElement);
+          });
+        } else {
+          pendingRequestsList.innerHTML = '<div class="no-requests">No pending requests</div>';
+        }
+      })
+      .catch(error => console.error("Error:", error));
+  }
+
+  // Send Friend Request to a specific user (MODIFIED)
+  function sendFriendRequest(userId) {
+    fetch(`/send_friend_request/${userId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(data.message);
+        // Disable the button and update its text
+        const buttons = document.querySelectorAll(`button[onclick="sendFriendRequest(${userId})"]`);
+        buttons.forEach(button => {
+          button.disabled = true;
+          button.textContent = "Request Sent";
+        });
+        fetchContacts(); // Refresh the contacts list
+      }
+    })
+    .catch(error => {
+      console.error("Error sending friend request:", error);
+      alert("Failed to send friend request");
+    });
+  }
+
+  // Accept a Friend Request
+  function acceptFriendRequest(requestId) {
+    fetch(`/accept_friend_request/${requestId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ request_id: requestId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      fetchPendingRequests();
+    })
+    .catch(error => console.error("Error accepting friend request:", error));
+  }
+
+  // Reject a Friend Request
+  function rejectFriendRequest(requestId) {
+    fetch(`/reject_friend_request/${requestId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ request_id: requestId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      fetchPendingRequests();
+    })
+    .catch(error => console.error("Error rejecting friend request:", error));
+  }
+
+  // WebSocket connection for chat
   const chatSocket = new WebSocket(`ws://${window.location.host}/ws/messaging/`);
 
   chatSocket.onmessage = function (e) {
@@ -62,15 +223,44 @@
       messageInput.value = "";
     }
   }
+
+  // Search Form Handling
+  document.getElementById('search-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const query = document.getElementById('search-query').value;
+    fetch(`/fetch_contacts/?q=${query}`)
+      .then(response => response.json())
+      .then(data => {
+        const contactsList = document.getElementById('contacts-list');
+        contactsList.innerHTML = '';
+        data.users.forEach(user => {
+          const contactElement = document.createElement('div');
+          contactElement.textContent = user.username;
+          contactElement.classList.add('contact-item');
+
+          const friendRequestButton = document.createElement('button');
+          friendRequestButton.textContent = 'Add';
+          friendRequestButton.classList.add('add-button');
+          friendRequestButton.onclick = function () {
+            sendFriendRequest(user.id);
+          };
+          contactElement.appendChild(friendRequestButton);
+
+          contactsList.appendChild(contactElement);
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  });
 </script>
 
 <style>
-  /* Ensure overall background is white */
+  /* All your existing CSS remains exactly the same */
   body {
     background-color: white;
   }
 
-  /* Overall chat container */
   .chat-container {
     display: flex;
     flex-direction: column;
@@ -78,7 +268,6 @@
     background-color: white;
   }
   
-  /* Header */
   .chat-header {
     display: flex;
     justify-content: space-between;
@@ -89,15 +278,13 @@
     position: relative;
   }
   
-  /* Logout Button position */
   .chat-header .right {
     position: absolute;
     top: 15px;
     right: 15px;
   }
   
-  /* Logout button styling */
-  #logout-button {
+  #logout-button, #profile-button, #contacts-button {
     background-color: #000000;
     color: white;
     border: none;
@@ -105,34 +292,85 @@
     border-radius: 4px;
     cursor: pointer;
   }
-  
-  /* Profile button styling */
-  #profile-button {
-    background-color: #000000;
-    color: rgb(247, 242, 242);
+
+  .contacts-section {
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  #pending-requests {
+    margin-top: 20px;
+  }
+
+  .pending-request-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .accept-button {
+    background-color: #4CAF50;
+    color: white;
     border: none;
     padding: 8px 15px;
     border-radius: 4px;
     cursor: pointer;
   }
+
+  .reject-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .add-button {
+    background-color: #000000;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .add-button:hover {
+    background-color: #444444;
+  }
+
+  #contacts-list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .contact-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+  }
   
-  /* Chat Box with blue background */
+  .contact-item:hover {
+    background-color: #e8e8e8;
+  }
+
   #chat-box {
     flex-grow: 1;
     padding: 15px;
-    background-color: rgb(232, 232, 234); /* Blue background */
+    background-color: rgb(232, 232, 234);
     color: rgb(205, 3, 3);
     border-radius: 8px;
-    margin: 15px auto; /* Centers the chat box horizontally */
+    margin: 15px auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    height: 20vh; /* Even smaller height */
-    width: 50%; /* Width remains the same */
+    height: 20vh;
+    width: 50%;
     display: flex;
-    flex-direction: column-reverse; /* Keeps the latest messages at the bottom */
+    flex-direction: column-reverse;
   }
 
-  /* Message Input Section with white background */
   #message-input-section {
     display: flex;
     margin-top: auto;
@@ -141,7 +379,6 @@
     border-radius: 8px;
   }
   
-  /* Chat Message Input Field with white background */
   #chat-message-input {
     flex-grow: 1;
     padding: 10px;
@@ -149,13 +386,28 @@
     border-radius: 8px;
     border: 1px solid #ccc;
     outline: none;
-    background-color: white;
-    color: black;
   }
-  
-  /* Focus effect on input field */
-  #chat-message-input:focus {
-    border-color: #4a69bd;
+
+  #send-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+
+  #send-button:hover {
+    background-color: #45a049;
+  }
+
+  /* NEW: Added style for disabled buttons */
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #666 !important;
   }
 </style>
+
 {% endblock %}

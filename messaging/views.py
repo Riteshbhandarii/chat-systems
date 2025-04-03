@@ -1,126 +1,161 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm
-from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from .models import FriendRequest, Friend, Groupchat, Groupmchatmessage
+from .models import FriendRequest, Friend, Groupchat, Groupmchatmessage 
+from .forms import RegisterForm
+from django.views.decorators.csrf import csrf_exempt
 
-
-# Home view: If user is logged in, redirect to chat room, else show login
+# Home view: Redirect to chat room if logged in, else show login page
 def home_view(request):
     if request.user.is_authenticated:
-        return redirect('chat_room', room_name='general')  # Redirect to the chat room if logged in
-    return render(request, 'messaging/home.html')
+        return redirect('chat_room', room_name='general')
+    return render(request, 'messaging/chat_room.html')
 
-# Register view: If logged in, redirect to home page, else show registration form
+# Register view: Show registration form and handle registration logic
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('chat_room', room_name='general')  # Redirect to chat room if already logged in
+        return redirect('chat_room', room_name='general')
 
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            # Save the new user
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])  # Hash the password
+            user.set_password(form.cleaned_data['password'])
             user.save()
 
-            # Log the user in automatically
             login(request, user)
-
             messages.success(request, 'Registration successful! You are now logged in.')
-            return redirect('chat_room', room_name='general')  # Redirect to chat room after registration
-        else:
-            messages.error(request, "There are errors in the form. Please check the fields.")
-            return render(request, 'messaging/register.html', {'form': form})
+            return redirect('chat_room', room_name='general')
 
-    else:
-        form = RegisterForm()
+        messages.error(request, "There are errors in the form. Please check the fields.")
+        return render(request, 'messaging/chat_room.html', {'form': form})
 
-    return render(request, 'messaging/register.html', {'form': form})
+    form = RegisterForm()
+    return render(request, 'messaging/chat_room.html', {'form': form})
 
-# Login view: If logged in, redirect to chat room, else handle login
+# Login view: Handle user login logic
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('chat_room', room_name='general')  # Redirect to chat room if already logged in
+        return redirect('chat_room', room_name='general')
 
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
         if not username or not password:
-            return render(request, "messaging/login.html", {"error": "Username and password are required."})
+            messages.error(request, "Username and password are required.")
+            return render(request, "messaging/login.html")
 
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+        if user:
             login(request, user)
-            return redirect('chat_room', room_name='general')  # Redirect to chat room after successful login
-        else:
-            return render(request, "messaging/login.html", {"error": "Invalid credentials"})
+            return redirect('chat_room', room_name='general')
 
+        messages.error(request, "Invalid credentials")
+        return render(request, "messaging/login.html")
+
+    # Add this line to handle GET requests
     return render(request, "messaging/login.html")
 
-# Logout view: Log out the user and redirect to login page
+# Logout view: Logs out the user and redirects to login page
+@csrf_exempt  # Added CSRF exemption as a possible fix
 def logout_view(request):
-    logout(request)  # Logs the user out
-    return redirect('login')  # Redirect to login page after logout
+    if request.user.is_authenticated:
+        logout(request)
+        messages.success(request, "You have successfully logged out.")
+    return redirect('login')  # Redirect to login view directly instead of 'home'
 
-# Chat room view: Render the chat room page (ensure user is logged in)
+# Chat room view: Render the chat room page if user is logged in
 @login_required
 def chat_room(request, room_name):
-    """
-    View to render the chat room page.
-    Ensures that the user is logged in and passes the room name as context.
-    """
-    # Render the chat room template with the room name as context
-    return render(request, 'messaging/chat_room.html', {'room_name': room_name})
+    # Get pending friend requests
+    friend_requests = FriendRequest.objects.filter(receiver=request.user, status='pending').select_related('sender')
+
+    # Fetch friends of the user
+    friends = Friend.objects.filter(user=request.user)
+    
+    return render(request, 'messaging/chat_room.html', {
+        'room_name': room_name,
+        'friend_requests': friend_requests,
+        'friends': friends
+    })
 
 # Send a friend request
+@csrf_exempt
 @login_required
-def send_friend_request(request, username):
-    receiver = get_object_or_404(User, username=username)
+def send_friend_request(request, user_id):
+    receiver = get_object_or_404(User, id=user_id)
+    
     if receiver == request.user:
         return JsonResponse({"error": "You cannot send a friend request to yourself."})
 
-    # Check if a request already exists
-    if FriendRequest.objects.filter(sender=request.user, receiver=receiver, status='pending').exists():
-        return JsonResponse({"error": "Friend request already sent."})
+    # Check if any request exists (pending, accepted or declined)
+    if FriendRequest.objects.filter(sender=request.user, receiver=receiver).exists():
+        return JsonResponse({"error": "Friend request already exists."})
 
-    # Create a new friend request
-    friend_request = FriendRequest(sender=request.user, receiver=receiver)
-    friend_request.save()
-
-    return JsonResponse({"message": f"Friend request sent to {receiver.username}."})
-
+    # Create new request
+    friend_request = FriendRequest.objects.create(
+        sender=request.user,
+        receiver=receiver,
+        status='pending'
+    )
+    
+    return JsonResponse({
+        "message": f"Friend request sent to {receiver.username}.",
+        "sender_username": request.user.username  # Ensure this is included
+    })
 # Search users to send a friend request
 @login_required
 def search_users(request):
     query = request.GET.get('q', '')
-    users = User.objects.filter(username__icontains=query).exclude(id=request.user.id)
-    return render(request, 'messaging/search_results.html', {'users': users, 'query': query})
+    users = User.objects.filter(username__icontains=query).exclude(id=request.user.id) if query else User.objects.none()
+    
+    users_data = [{'id': user.id, 'username': user.username} for user in users]
+    return JsonResponse({'users': users_data})
 
 # Accept a friend request
 @login_required
 def accept_friend_request(request, request_id):
     friend_request = get_object_or_404(FriendRequest, id=request_id, receiver=request.user)
-    friend_request.accept()
+    friend_request.status = 'accepted'
+    friend_request.save()
+
+    # Add to friend list
+    Friend.objects.get_or_create(user=request.user, friend=friend_request.sender)
+    Friend.objects.get_or_create(user=friend_request.sender, friend=request.user)
+
     return JsonResponse({"message": "Friend request accepted"})
 
 # Decline a friend request
 @login_required
 def decline_friend_request(request, request_id):
     friend_request = get_object_or_404(FriendRequest, id=request_id, receiver=request.user)
-    friend_request.decline()
+    friend_request.status = 'declined'
+    friend_request.save()
     return JsonResponse({"message": "Friend request declined"})
+
+# Fetch contacts (usernames only)
+@login_required
+def fetch_contacts(request):
+    query = request.GET.get('q', '').strip()
+    
+    # Only search if query has at least 2 characters
+    if len(query) < 2:
+        return JsonResponse({'users': []})
+    
+    users = User.objects.filter(username__icontains=query).exclude(id=request.user.id)
+    
+    users_data = [{'id': user.id, 'username': user.username} for user in users]
+    return JsonResponse({'users': users_data})
 
 # View friend list
 @login_required
 def view_friends(request):
     friends = Friend.objects.filter(user=request.user)
-    return render(request, 'messaging/friend_list.html', {'friends': friends})
+    return render(request, 'messaging/chat_room.html', {'friends': friends})
 
 # Create a new group chat
 @login_required
@@ -135,13 +170,14 @@ def create_group_chat(request):
         group_chat.save()
 
         return redirect('chat_room', room_name=group_chat.name)
-    
-    return render(request, 'messaging/create_group_chat.html')
 
-# Send message to a group chat
+    return render(request, 'messaging/chat_room.html')
+
+# Send a message to a group chat
 @login_required
 def send_group_message(request, group_id):
     group_chat = get_object_or_404(Groupchat, id=group_id)
+
     if request.user not in group_chat.members.all():
         return JsonResponse({"error": "You are not a member of this group."})
 
@@ -150,10 +186,25 @@ def send_group_message(request, group_id):
         if not message_content:
             return JsonResponse({"error": "Message content cannot be empty."})
 
-        group_message = Groupmchatmessage(sender=request.user, group_chat=group_chat, content=message_content)
+        group_message = GroupchatMessage(sender=request.user, group_chat=group_chat, content=message_content)
         group_message.save()
 
         return JsonResponse({"message": "Message sent."})
 
-    return render(request, 'messaging/send_group_message.html', {'group_chat': group_chat})
+    return render(request, 'messaging/chat_room.html', {'group_chat': group_chat})
 
+@login_required
+def pending_friend_requests(request):
+    requests = FriendRequest.objects.filter(
+        receiver=request.user,
+        status='pending'
+    ).select_related('sender')
+    
+    requests_data = [{
+        'id': req.id,
+        'sender_id': req.sender.id,
+        'sender_username': req.sender.username,
+        'timestamp': req.timestamp.strftime("%Y-%m-%d %H:%M")
+    } for req in requests]
+    
+    return JsonResponse({'requests': requests_data})
