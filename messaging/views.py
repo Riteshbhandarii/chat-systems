@@ -61,14 +61,14 @@ def login_view(request):
     return render(request, "messaging/login.html")
 
 # Logout view: Logs out the user and redirects to login page
-@csrf_exempt  # Added CSRF exemption as a possible fix
+# Added CSRF exemption as a possible fix
+
 def logout_view(request):
     if request.user.is_authenticated:
         logout(request)
         messages.success(request, "You have successfully logged out.")
-    return redirect('login')  # Redirect to login view directly instead of 'home'
-
-# Chat room view: Render the chat room page if user is logged in
+    return redirect('login')  # Moved outside the if block
+ #chat at room view: Render the chat room page if user is logged in
 @login_required
 def chat_room(request, room_name):
     # Get pending friend requests
@@ -208,3 +208,12 @@ def pending_friend_requests(request):
     } for req in requests]
     
     return JsonResponse({'requests': requests_data})
+
+@login_required
+def get_friends(request):
+    # Fetch the friends of the logged-in user
+    friends = Friend.objects.filter(user=request.user)
+
+    # Prepare a response containing the friends list
+    friends_data = [{"id": friend.friend.id, "username": friend.friend.username} for friend in friends]
+    return JsonResponse({"friends": friends_data})

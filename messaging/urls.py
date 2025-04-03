@@ -16,4 +16,6 @@ urlpatterns = [
     
     # Only keep the pending_friend_requests URL
     path('pending_friend_requests/', views.pending_friend_requests, name='pending_friend_requests'),
+
+    path('get_friends/', views.get_friends, name='get_friends'),
 ]

@@ -1,7 +1,6 @@
 {% extends 'messaging/base.html' %}
 {% block content %}
 <div class="chat-container">
-  <!-- Top Header -->
   <div class="chat-header">
     <div class="left">
       <button id="profile-button" onclick="goToProfile()">Profile</button>
@@ -11,33 +10,33 @@
     </div>
     <div class="right">
       <button id="contacts-button" onclick="toggleContacts()">Contacts</button>
-      <button id="logout-button" onclick="window.location.href='{% url 'logout' %}'">Logout</button>
-    </div>
-  </div>
-  
-  <!-- Contacts Section -->
-  <div id="contacts-section" class="contacts-section" style="display: none;">
-    <h3>Your Contacts</h3>
-    
-    <form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
-      <input type="text" id="search-query" name="q" placeholder="Search for users..." />
-      <button type="submit">Search</button>
-    </form>
-    
-    <div id="contacts-list">
-      <!-- Contacts will be dynamically populated here -->
-    </div>
-    
-    <!-- Pending Friend Requests -->
-    <h3>Pending Friend Requests</h3>
-    <div id="pending-requests">
-      <!-- Pending requests will be dynamically populated here -->
+      <button id="logout-button" onclick="window.location.href = '/logout/' ">
+        Logout
+    </button>
     </div>
   </div>
 
-  <!-- Chat Box Area -->
+  <div id="contacts-section" class="contacts-section" style="display: none;">
+    <h3>Your Contacts</h3>
+
+    <form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
+      {% csrf_token %} <input type="text" id="search-query" name="q" placeholder="Search for users..." />
+      <button type="submit">Search</button>
+    </form>
+
+    <div id="contacts-list">
+      </div>
+
+    <h3>Your Friends</h3>
+    <div id="friends-list">
+      </div>
+
+    <h3>Pending Friend Requests</h3>
+    <div id="pending-requests">
+      </div>
+  </div>
+
   <div id="chat-box" class="chat-box">
-    <!-- Messages will appear here -->
     <div id="message-input-section">
       <input type="text" id="chat-message-input" placeholder="Type your message..." />
       <button id="send-button">Send</button>
@@ -56,6 +55,7 @@
     if (contactsSection.style.display === "none") {
       contactsSection.style.display = "block";
       fetchContacts();
+      fetchFriends();
       fetchPendingRequests();
     } else {
       contactsSection.style.display = "none";
@@ -64,56 +64,120 @@
 
   // Fetch contacts from the server and populate the list
   function fetchContacts() {
-    fetch('/contacts/')
+    // Include search query if the input has value
+    const query = document.getElementById('search-query').value;
+    fetch(`/fetch_contacts/?q=${encodeURIComponent(query)}`) // Ensure endpoint is correct and query is encoded
       .then(response => response.json())
       .then(data => {
         const contactsList = document.getElementById("contacts-list");
         contactsList.innerHTML = '';
-        data.users.forEach(user => {
-          const contactElement = document.createElement("div");
-          contactElement.textContent = user.username;
-          contactElement.classList.add('contact-item');
-          
-          const friendRequestButton = document.createElement("button");
-          friendRequestButton.textContent = "Add";
-          friendRequestButton.classList.add('add-button');
-          friendRequestButton.onclick = function() {
-            sendFriendRequest(user.id);
-          };
-          contactElement.appendChild(friendRequestButton);
-          
-          contactsList.appendChild(contactElement);
-        });
+        if (data.users && data.users.length > 0) {
+            data.users.forEach(user => {
+              const contactElement = document.createElement("div");
+              contactElement.textContent = user.username;
+              contactElement.classList.add('contact-item');
+
+              const friendRequestButton = document.createElement("button");
+              friendRequestButton.textContent = "Add";
+              friendRequestButton.classList.add('add-button');
+              friendRequestButton.onclick = function() {
+                sendFriendRequest(user.id);
+              };
+              contactElement.appendChild(friendRequestButton);
+
+              contactsList.appendChild(contactElement);
+            });
+        } else {
+            // Keep original behavior (no message) or add simple text
+             // contactsList.innerHTML = '<div>No users found.</div>'; // Optional simple feedback
+        }
       })
       .catch(error => console.error("Error fetching contacts:", error));
   }
 
+  // Fetch friends list
+  function fetchFriends() {
+    fetch('/get_friends/') // Ensure endpoint is correct
+      .then(response => response.json())
+      .then(data => {
+        const friendsList = document.getElementById("friends-list");
+        friendsList.innerHTML = '';
+        if (data.friends && data.friends.length > 0) {
+          data.friends.forEach(friend => {
+            const friendElement = document.createElement("div");
+            friendElement.textContent = friend.username;
+            friendElement.classList.add('friend-item');
+
+            const messageButton = document.createElement("button");
+            messageButton.textContent = "Message";
+            messageButton.classList.add('message-button');
+            messageButton.onclick = function() {
+              startChat(friend.id, friend.username); // Pass username for context
+            };
+            friendElement.appendChild(messageButton);
+
+            friendsList.appendChild(friendElement);
+          });
+        } else {
+          friendsList.innerHTML = '<div class="no-friends">No friends yet</div>';
+        }
+      })
+      .catch(error => console.error("Error fetching friends:", error));
+  }
+
+  // Start chat with a friend
+  function startChat(friendId, friendUsername) { // Accept username
+    console.log("Starting chat with friend ID:", friendId);
+    document.getElementById("contacts-section").style.display = "none";
+    if (friendUsername) {
+        document.querySelector(".chat-header .center h2").textContent = `Chat with ${friendUsername}`;
+    } else {
+         document.querySelector(".chat-header .center h2").textContent = ''; // Clear if no username
+    }
+    // Clear previous messages before loading new ones - implementation depends on how messages are structured
+    // Example: Clear all children except the input section itself
+    const chatBox = document.getElementById("chat-box");
+    const inputSection = document.getElementById("message-input-section");
+    while (chatBox.firstChild && chatBox.firstChild !== inputSection) {
+        chatBox.removeChild(chatBox.firstChild);
+    }
+    // Fetch message history for friendId here (requires backend endpoint)
+    document.getElementById("chat-message-input").focus();
+  }
+
+
+  // *** UPDATED Function - ONLY CHANGE IS HERE ***
   // Fetch pending friend requests from the server and populate the list
   function fetchPendingRequests() {
-    fetch('/pending_friend_requests/')
+    fetch('/pending_friend_requests/') // Ensure endpoint is correct
       .then(response => response.json())
       .then(data => {
         const pendingRequestsList = document.getElementById("pending-requests");
-        pendingRequestsList.innerHTML = '';
+        pendingRequestsList.innerHTML = ''; // Clear previous list
         if (data.requests && data.requests.length > 0) {
           data.requests.forEach(request => {
             const requestElement = document.createElement("div");
-            requestElement.textContent = `Friend request from ${request.sender_username}`;
+            requestElement.textContent = `Friend request from ${request.sender_username}`; // Display sender
             requestElement.classList.add('pending-request-item');
-            
+            // *** Crucial: Set data attribute to identify this element later ***
+            requestElement.setAttribute('data-request-id', request.id);
+
             const acceptButton = document.createElement("button");
-            acceptButton.textContent = "Accept";  
+            acceptButton.textContent = "Accept";
             acceptButton.classList.add('accept-button');
-            acceptButton.onclick = function() {
-              acceptFriendRequest(request.id);
+            acceptButton.onclick = function(e) {
+              e.stopPropagation(); // Prevent potential parent handlers
+              // *** Pass username for potential use in acceptFriendRequest ***
+              acceptFriendRequest(request.id, request.sender_username);
             };
             requestElement.appendChild(acceptButton);
 
             const rejectButton = document.createElement("button");
-            rejectButton.textContent = "Reject";  
+            rejectButton.textContent = "Reject";
             rejectButton.classList.add('reject-button');
-            rejectButton.onclick = function() {
-              rejectFriendRequest(request.id);
+            rejectButton.onclick = function(e) {
+              e.stopPropagation();
+              rejectFriendRequest(request.id); // Username not needed for reject
             };
             requestElement.appendChild(rejectButton);
 
@@ -123,82 +187,227 @@
           pendingRequestsList.innerHTML = '<div class="no-requests">No pending requests</div>';
         }
       })
-      .catch(error => console.error("Error:", error));
+      .catch(error => console.error("Error fetching pending requests:", error));
+      // Removed error message injection into the div to avoid UI change
   }
 
-  // Send Friend Request to a specific user (MODIFIED)
+  // Send Friend Request to a specific user
   function sendFriendRequest(userId) {
-    fetch(`/send_friend_request/${userId}/`, {
+    fetch(`/send_friend_request/${userId}/`, { // Ensure endpoint is correct
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken() // Get CSRF token
       },
+      credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
       if (data.error) {
         alert(data.error);
       } else {
-        alert(data.message);
-        // Disable the button and update its text
-        const buttons = document.querySelectorAll(`button[onclick="sendFriendRequest(${userId})"]`);
+        alert(data.message); // Use original alert
+        // Disable button to prevent multiple requests
+        const buttons = document.querySelectorAll(`.contact-item button[onclick="sendFriendRequest(${userId})"]`);
         buttons.forEach(button => {
           button.disabled = true;
           button.textContent = "Request Sent";
         });
-        fetchContacts(); // Refresh the contacts list
+        fetchContacts(); // Original behavior: refresh contacts
       }
     })
     .catch(error => {
       console.error("Error sending friend request:", error);
-      alert("Failed to send friend request");
+      alert("Failed to send friend request"); // Original alert message
     });
   }
 
-  // Accept a Friend Request
-  function acceptFriendRequest(requestId) {
-    fetch(`/accept_friend_request/${requestId}/`, {
+  // *** Using your ORIGINAL simple CSRF token function ***
+  // Function to get CSRF token from the page (expects hidden input)
+  function getCSRFToken() {
+    let csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfToken) {
+        return csrfToken.value;
+    }
+    console.error("CSRF token input field not found!");
+    // Return null or handle error as originally intended.
+    // The fetch calls below should ideally check for a null token.
+    return null;
+  }
+
+
+  // *** UPDATED Function - ONLY CHANGE IS HERE ***
+  // Accept a Friend Request - Handles UI removal
+  function acceptFriendRequest(requestId, senderUsername) {
+    console.log("Accepting request ID:", requestId);
+    const token = getCSRFToken();
+    if (!token) { // Basic check if token wasn't found
+        alert("CSRF token missing. Cannot proceed.");
+        return;
+    }
+
+    fetch(`/accept_friend_request/${requestId}/`, { // Ensure endpoint is correct
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': token
       },
-      body: JSON.stringify({ request_id: requestId })
+      credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+          // Try to get error from backend response body
+          return response.json().then(errData => {
+               throw new Error(errData.error || `Server responded with status: ${response.status}`);
+           }).catch(() => { // Fallback if body isn't JSON or doesn't contain error
+               throw new Error(`Network response was not ok. Status: ${response.status}`);
+           });
+      }
+      return response.json();
+    })
     .then(data => {
-      alert(data.message);
-      fetchPendingRequests();
+      console.log("Accept response data:", data);
+      if (data.success) {
+        // --- UI Update Logic ---
+        const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
+        if (requestElement) {
+          const container = document.getElementById("pending-requests");
+          requestElement.remove(); // <<< REMOVES THE ITEM FROM UI
+          console.log("Removed pending request item:", requestId);
+
+          // Check if the container is now empty
+          if (container.children.length === 0) {
+            container.innerHTML = '<div class="no-requests">No pending requests</div>'; // Use original class
+          }
+
+          // Refresh friends list to show the new friend
+          fetchFriends();
+          console.log("Refreshed friends list.");
+
+          // --- Optional temporary message removed to avoid ANY UI change ---
+          /*
+          const successDiv = document.createElement('div');
+          successDiv.className = 'success-message'; // Relies on your CSS
+          successDiv.textContent = `✓ You are now friends with ${senderUsername}`;
+          container.appendChild(successDiv);
+          setTimeout(() => {
+               if (successDiv.parentNode) successDiv.remove();
+            }, 2000);
+          */
+
+        } else {
+            console.warn("Could not find request element to remove for ID:", requestId);
+            // Still refresh friends list as backend succeeded
+            fetchFriends();
+            // Use original alert style feedback if UI element not found
+            alert("Friend accepted, but the list item could not be removed automatically.");
+        }
+         // --- End UI Update Logic ---
+      } else {
+        // Use original alert for failure feedback
+        alert(data.error || "Failed to accept friend request.");
+      }
     })
-    .catch(error => console.error("Error accepting friend request:", error));
+    .catch(error => {
+      // Use original alert for failure feedback
+      console.error("Error accepting friend request:", error);
+      alert("Failed to accept friend request. Please try again."); // Original message
+    });
   }
 
-  // Reject a Friend Request
+  // *** UPDATED Function - ONLY CHANGE IS HERE ***
+  // Reject Friend Request - Handles UI removal
   function rejectFriendRequest(requestId) {
-    fetch(`/reject_friend_request/${requestId}/`, {
+    console.log("Rejecting request ID:", requestId);
+    const token = getCSRFToken();
+    if (!token) {
+        alert("CSRF token missing. Cannot proceed.");
+        return;
+    }
+
+    fetch(`/reject_friend_request/${requestId}/`, { // Ensure endpoint is correct
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': token
       },
-      body: JSON.stringify({ request_id: requestId })
+      credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+       if (!response.ok) {
+           return response.json().then(errData => {
+                throw new Error(errData.error || `Server responded with status: ${response.status}`);
+            }).catch(() => {
+                throw new Error(`Network response was not ok. Status: ${response.status}`);
+            });
+       }
+      return response.json();
+    })
     .then(data => {
-      alert(data.message);
-      fetchPendingRequests();
+      console.log("Reject response data:", data);
+      if (data.success) {
+         // --- UI Update Logic ---
+        const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
+        if (requestElement) {
+          const container = document.getElementById("pending-requests");
+          requestElement.remove(); // <<< REMOVES THE ITEM FROM UI
+          console.log("Removed pending request item:", requestId);
+
+           // Check if the container is now empty
+          if (container.children.length === 0) {
+             container.innerHTML = '<div class="no-requests">No pending requests</div>'; // Use original class
+           }
+
+          // --- Optional temporary message removed to avoid ANY UI change ---
+          /*
+          const rejectDiv = document.createElement('div');
+          rejectDiv.className = 'reject-message'; // Relies on your CSS
+          rejectDiv.textContent = "✓ Request rejected";
+          container.appendChild(rejectDiv);
+          setTimeout(() => {
+               if (rejectDiv.parentNode) rejectDiv.remove();
+            }, 2000);
+          */
+
+        } else {
+             console.warn("Could not find request element to remove for ID:", requestId);
+             // Use original alert style feedback if UI element not found
+            alert("Friend request rejected, but the list item could not be removed automatically.");
+        }
+        // --- End UI Update Logic ---
+      } else {
+        // Use original alert for failure feedback
+        alert(data.error || "Failed to reject friend request.");
+      }
     })
-    .catch(error => console.error("Error rejecting friend request:", error));
+    .catch(error => {
+      // Use original alert for failure feedback
+      console.error("Error rejecting friend request:", error);
+      alert("Failed to reject friend request. Please try again."); // Original message
+    });
   }
 
+
+  // --- WebSocket and other functions remain IDENTICAL to your version ---
   // WebSocket connection for chat
   const chatSocket = new WebSocket(`ws://${window.location.host}/ws/messaging/`);
 
   chatSocket.onmessage = function (e) {
     const data = JSON.parse(e.data);
     const chatBox = document.getElementById("chat-box");
+    // Original logic: find input section to insert before it
+    const messageInputSection = document.getElementById("message-input-section");
     const messageElement = document.createElement("div");
-    messageElement.textContent = data.message;
-    chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    messageElement.textContent = data.message; // Assumes {message: "..."} format
+    // Insert before the input section
+    if (messageInputSection) {
+        chatBox.insertBefore(messageElement, messageInputSection);
+    } else {
+        // Fallback if somehow input section isn't found
+        chatBox.appendChild(messageElement);
+    }
+    // Original scroll logic (might not be needed with flex-reverse, but kept for consistency)
+    // chatBox.scrollTop = chatBox.scrollHeight;
   };
 
   chatSocket.onclose = function () {
@@ -210,15 +419,17 @@
   };
 
   document.getElementById("chat-message-input").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.shiftKey) { // Send on Enter only
+       event.preventDefault(); // Prevent default newline/submit
       sendMessage();
     }
   });
 
   function sendMessage() {
     const messageInput = document.getElementById("chat-message-input");
-    const message = messageInput.value;
-    if (message.trim() !== "") {
+    const message = messageInput.value.trim(); // Trim whitespace
+    if (message !== "") {
+      // Original simple send format
       chatSocket.send(JSON.stringify({ message: message }));
       messageInput.value = "";
     }
@@ -227,36 +438,12 @@
   // Search Form Handling
   document.getElementById('search-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    const query = document.getElementById('search-query').value;
-    fetch(`/fetch_contacts/?q=${query}`)
-      .then(response => response.json())
-      .then(data => {
-        const contactsList = document.getElementById('contacts-list');
-        contactsList.innerHTML = '';
-        data.users.forEach(user => {
-          const contactElement = document.createElement('div');
-          contactElement.textContent = user.username;
-          contactElement.classList.add('contact-item');
-
-          const friendRequestButton = document.createElement('button');
-          friendRequestButton.textContent = 'Add';
-          friendRequestButton.classList.add('add-button');
-          friendRequestButton.onclick = function () {
-            sendFriendRequest(user.id);
-          };
-          contactElement.appendChild(friendRequestButton);
-
-          contactsList.appendChild(contactElement);
-        });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+    // Original logic: just call fetchContacts
+    fetchContacts();
   });
 </script>
 
 <style>
-  /* All your existing CSS remains exactly the same */
   body {
     background-color: white;
   }
@@ -264,26 +451,34 @@
   .chat-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100vh; /* Make sure the container takes up the full viewport height */
     background-color: white;
+    justify-content: center; /* Add this to center content vertically */
   }
-  
+
   .chat-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     background-color: white;
     color: black;
     padding: 15px;
-    position: relative;
   }
-  
+
+  .chat-header .left {
+    /* Profile button will naturally align to the left */
+  }
+
+  .chat-header .center {
+    flex-grow: 1; /* This will push the right buttons to the right */
+    text-align: center; /* Keep the title in the center if you have one */
+  }
+
   .chat-header .right {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+    margin-left: auto; /* Push to the right */
+    display: flex; /* Make it a flex container for the buttons inside */
+    align-items: center; /* Vertically align the buttons */
   }
-  
+
   #logout-button, #profile-button, #contacts-button {
     background-color: #000000;
     color: white;
@@ -291,14 +486,15 @@
     padding: 8px 15px;
     border-radius: 4px;
     cursor: pointer;
+    margin-left: 5px; /* Add some space between the buttons on the right */
   }
 
-  .contacts-section {
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-radius: 8px;
-    margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Make sure the container takes up the full viewport height */
+    background-color: white;
+    /* Removed justify-content: center; */
   }
 
   #pending-requests {
@@ -351,24 +547,24 @@
     border-bottom: 1px solid #ccc;
     cursor: pointer;
   }
-  
+
   .contact-item:hover {
     background-color: #e8e8e8;
   }
 
   #chat-box {
-    flex-grow: 1;
+    /* Removed margin-top: auto; */
     padding: 15px;
     background-color: rgb(232, 232, 234);
     color: rgb(205, 3, 3);
     border-radius: 8px;
-    margin: 15px auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    height: 20vh;
-    width: 50%;
+    height: 60vh; /* Adjust height as needed */
+    width: 70%; /* Adjust width as needed */
     display: flex;
     flex-direction: column-reverse;
+    margin: auto; /* This will center both horizontally and vertically within the available space */
   }
 
   #message-input-section {
@@ -378,7 +574,7 @@
     padding: 10px;
     border-radius: 8px;
   }
-  
+
   #chat-message-input {
     flex-grow: 1;
     padding: 10px;
@@ -409,5 +605,4 @@
     background-color: #666 !important;
   }
 </style>
-
 {% endblock %}

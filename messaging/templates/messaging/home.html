@@ -3,12 +3,17 @@
 
 {% block content %}
 <h1>Welcome to the Messaging App</h1>
-<div>
-    <!-- Button to go to the login page -->
-    <a href="{% url 'login' %}" class="button">Login</a>
-    <!-- Button to go to the register page -->
-    <a href="{% url 'register' %}" class="button">Sign Up</a>
-</div>
+
+{% if user.is_authenticated %}
+    <div>
+        <p>Welcome, {{ user.username }}!</p>
+        </div>
+{% else %}
+    <div>
+        <a href="{% url 'login' %}" class="button">Login</a>
+        <a href="{% url 'register' %}" class="button">Sign Up</a>
+    </div>
+{% endif %}
 
 <style>
     .button {
@@ -25,7 +30,7 @@
         cursor: pointer;
         transition: background-color 0.3s;
     }
-    
+
     .button:hover {
         background-color: #45a049;
     }
