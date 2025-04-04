@@ -9,19 +9,21 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 # accesses enviroment variables
 # chat_project/asgi.py
 import os
+import django
 from django.core.asgi import get_asgi_application
+
+# THIS MUST COME FIRST
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chat_project.settings')
+django.setup()  # Initialize Django
+
+# Then import your WebSocket components
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from messaging.routing import websocket_urlpatterns  # Import your routing
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chat_project.settings")
+from messaging.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    # Adding the WebSocket URL routing to the middleware
     "websocket": AuthMiddlewareStack(
-        URLRouter(
-            websocket_urlpatterns  # Correct routing for WebSocket
-        )
+        URLRouter(websocket_urlpatterns)
     ),
 })
