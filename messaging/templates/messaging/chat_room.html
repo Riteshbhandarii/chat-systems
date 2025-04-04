@@ -38,12 +38,16 @@
     <p>Your friends are waiting to hear from you!</p>
   </div>
   
-  <!-- Chat box (hidden initially) -->
   <div id="chat-box" class="chat-box" style="display: none;">
-    <div id="message-input-section">
-      <input type="text" id="chat-message-input" placeholder="Type your message..." />
-      <button id="send-button">Send</button>
-    </div>
+  <!-- SCROLLABLE MESSAGES CONTAINER -->
+  <div class="messages-container">
+    <!-- Messages will be inserted HERE -->
+  </div>
+  
+  <!-- FIXED INPUT (OUTSIDE SCROLL AREA) -->
+  <div id="message-input-section">
+    <input type="text" id="chat-message-input" placeholder="Type your message...">
+    <button id="send-button">Send</button>
   </div>
 </div>
 
@@ -418,8 +422,8 @@ document.getElementById("chat-message-input").addEventListener("keypress", funct
     fetchContacts();
   });
 </script>
-
 <style>
+  /* ===== UNCHANGED STYLES ===== */
   body {
     background-color: white;
   }
@@ -519,7 +523,6 @@ document.getElementById("chat-message-input").addEventListener("keypress", funct
     background-color: #e8e8e8;
   }
 
-  /* New styles for the start messaging prompt */
   .start-messaging {
     text-align: center;
     margin: auto;
@@ -536,56 +539,76 @@ document.getElementById("chat-message-input").addEventListener("keypress", funct
     font-size: 16px;
   }
 
-  /* Chat box styles */
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #666 !important;
+  }
+
+  /* ===== MODIFIED STYLES ===== */
+  
+  /* Chat box - added overflow hidden */
   #chat-box {
-    padding: 15px;
-    background-color: rgb(232, 232, 234);
-    color: rgb(205, 3, 3);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     height: 60vh;
     width: 70%;
-    display: flex;
-    flex-direction: column-reverse;
     margin: auto;
+    padding: 15px;
+    background-color: rgb(232, 232, 234);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden; /* NEW - contains scrolling */
   }
 
+  /* Messages container - now properly scrollable */
+  .messages-container {
+    flex: 1;
+    overflow-y: auto; /* NEW - enables scrolling */
+    padding-bottom: 80px; /* NEW - space for input */
+    scrollbar-width: thin; /* NEW - cleaner scrollbar */
+    height: 0; /* NEW - flexbox fix */
+    min-height: 100%; /* NEW - ensures expansion */
+  }
+
+  /* Input section - fixed alignment */
   #message-input-section {
-    display: flex;
-    margin-top: auto;
-    background-color: white;
-    padding: 10px;
+    position: absolute; /* NEW - locks position */
+    bottom: 15px; /* NEW - sticks to bottom */
+    left: 15px;
+    right: 15px;
+    background: white;
+    padding: 12px;
     border-radius: 8px;
+    display: flex; /* NEW - flex layout */
+    align-items: center; /* NEW - vertical align */
+    gap: 10px; /* NEW - spacing */
+    z-index: 2; /* NEW - stays on top */
   }
 
+  /* Input field - full width */
   #chat-message-input {
-    flex-grow: 1;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 8px;
+    flex: 1; /* NEW - takes available space */
+    padding: 12px;
+    font-size: 16px;
     border: 1px solid #ccc;
-    outline: none;
+    border-radius: 20px;
   }
 
+  /* Send button - proper alignment */
   #send-button {
-    background-color: #4CAF50;
+    flex-shrink: 0; /* NEW - prevents squishing */
+    background-color: #707d8c;
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-left: 10px;
+    padding: 10px 20px; /* NEW - better proportions */
+    border-radius: 20px; /* NEW - matches input */
     cursor: pointer;
   }
 
   #send-button:hover {
     background-color: #45a049;
-  }
-
-  button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: #666 !important;
   }
 </style>
 {% endblock %}
