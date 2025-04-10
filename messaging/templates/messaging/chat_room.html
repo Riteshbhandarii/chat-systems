@@ -1,614 +1,799 @@
+
 {% extends 'messaging/base.html' %}
 {% block content %}
 <div class="chat-container">
-  <div class="chat-header">
-    <div class="left">
-      <button id="profile-button" onclick="goToProfile()">Profile</button>
-    </div>
-    <div class="center">
-      <h2></h2>
-    </div>
-    <div class="right">
-      <button id="contacts-button" onclick="toggleContacts()">Contacts</button>
-      <button id="logout-button" onclick="window.location.href = '/logout/'">
-        Logout
-      </button>
-    </div>
-  </div>
+<div class="chat-header">
+<div class="left">
+</div>
+<div class="center">
+<h2 class="chat-username"></h2>
+<div id="online-status" class="online-status-indicator" style="display: none;">
+  <div class="status-dot offline"></div>
+  <span class="status-text">Offline</span>
+</div>
+</div>
+<div class="right">
+<button id="contacts-button" onclick="toggleContacts()">Contacts</button>
+<button id="logout-button" onclick="window.location.href = '/logout/'">
+Logout
+</button>
+</div>
+</div>
 
-  <div id="contacts-section" class="contacts-section" style="display: none;">
-    <h3>Your Contacts</h3>
-    <form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
-      {% csrf_token %} <input type="text" id="search-query" name="q" placeholder="Search for users..." />
-      <button type="submit">Search</button>
-    </form>
-    <div id="contacts-list"></div>
-    <h3>Your Friends</h3>
-    <div id="friends-list"></div>
-    <h3>Pending Friend Requests</h3>
-    <div id="pending-requests"></div>
-  </div>
+<div id="contacts-section" class="contacts-section" style="display: none;">
+<h3>Your Contacts</h3>
+<form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
+{% csrf_token %} <input type="text" id="search-query" name="q" placeholder="Search for users..." />
+<button type="submit">Search</button>
+</form>
+<div id="contacts-list"></div>
+<h3>Your Friends</h3>
+<div id="friends-list"></div>
+<h3>Pending Friend Requests</h3>
+<div id="pending-requests"></div>
+</div>
 
-  <!-- Updated chat section with initial prompt -->
- <div id="chat-section" style="height: 100%; display: flex; flex-direction: column;">
-  <!-- Centered welcome message -->
-  <div id="start-messaging" class="start-messaging" 
-       style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-    <h3>Welcome!</h3>
-    <p>Your friends are waiting to hear from you!</p>
-  </div>
-  
-  <div id="chat-box" class="chat-box" style="display: none;">
-  <!-- SCROLLABLE MESSAGES CONTAINER -->
-  <div class="messages-container">
-    <!-- Messages will be inserted HERE -->
-  </div>
-  
-  <!-- FIXED INPUT (OUTSIDE SCROLL AREA) -->
-  <div id="message-input-section">
-    <input type="text" id="chat-message-input" placeholder="Type your message...">
-    <button id="send-button">Send</button>
-  </div>
+<div id="chat-section" style="height: 100%; display: flex; flex-direction: column;">
+<div id="start-messaging" class="start-messaging"
+style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+<h3>Welcome!</h3>
+<p>Your friends are waiting to hear from you!</p>
+</div>
+<div id="chat-box" class="chat-box" style="display: none;">
+<!-- SCROLLABLE MESSAGES CONTAINER -->
+<div class="messages-container">
+<!-- Messages will be inserted HERE -->
+</div>
+<!-- FIXED INPUT (OUTSIDE SCROLL AREA) -->
+<div id="message-input-section">
+<input type="text" id="chat-message-input" placeholder="Type your message...">
+<button id="send-button">Send</button>
+</div>
 </div>
 
 <script>
-  // Function to go to Profile page
-  function goToProfile() {
-    window.location.href = "/profile/";
-  }
+function toggleContacts() {
+const contactsSection = document.getElementById("contacts-section");
+if (contactsSection.style.display === "none") {
+contactsSection.style.display = "block";
+fetchContacts();
+fetchFriends();
+fetchPendingRequests();
+} else {
+contactsSection.style.display = "none";
+}
+}
 
-  // Toggle Contacts Section visibility
-  function toggleContacts() {
-    const contactsSection = document.getElementById("contacts-section");
-    if (contactsSection.style.display === "none") {
-      contactsSection.style.display = "block";
-      fetchContacts();
-      fetchFriends();
-      fetchPendingRequests();
-    } else {
-      contactsSection.style.display = "none";
-    }
-  }
+function getCurrentTimeFormatted() {
+  const now = new Date();
+  let hours = now.getHours();
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  return `${hours}:${minutes} ${ampm}`;
+}
 
-  // Fetch contacts from the server and populate the list
-  function fetchContacts() {
-    const query = document.getElementById('search-query').value;
-    fetch(`/fetch_contacts/?q=${encodeURIComponent(query)}`)
-      .then(response => response.json())
-      .then(data => {
-        const contactsList = document.getElementById("contacts-list");
-        contactsList.innerHTML = '';
-        if (data.users && data.users.length > 0) {
-            data.users.forEach(user => {
-              const contactElement = document.createElement("div");
-              contactElement.textContent = user.username;
-              contactElement.classList.add('contact-item');
-
-              const friendRequestButton = document.createElement("button");
-              friendRequestButton.textContent = "Add";
-              friendRequestButton.classList.add('add-button');
-              friendRequestButton.onclick = function() {
-                sendFriendRequest(user.id);
-              };
-              contactElement.appendChild(friendRequestButton);
-
-              contactsList.appendChild(contactElement);
-            });
-        }
-      })
-      .catch(error => console.error("Error fetching contacts:", error));
-  }
-
-  // Fetch friends list
-  function fetchFriends() {
-    fetch('/get_friends/')
-      .then(response => response.json())
-      .then(data => {
-        const friendsList = document.getElementById("friends-list");
-        friendsList.innerHTML = '';
-        if (data.friends && data.friends.length > 0) {
-          data.friends.forEach(friend => {
-            const friendElement = document.createElement("div");
-            friendElement.textContent = friend.username;
-            friendElement.classList.add('friend-item');
-
-            const messageButton = document.createElement("button");
-            messageButton.textContent = "Message";
-            messageButton.classList.add('message-button');
-            messageButton.onclick = function() {
-              startChat(friend.id, friend.username);
-            };
-            friendElement.appendChild(messageButton);
-
-            friendsList.appendChild(friendElement);
-          });
-        } else {
-          friendsList.innerHTML = '<div class="no-friends">No friends yet</div>';
-        }
-      })
-      .catch(error => console.error("Error fetching friends:", error));
-  }
-
-  // Modified start chat with a friend
-  function startChat(friendId, friendUsername) {
-    console.log("Starting chat with friend ID:", friendId);
-    document.getElementById("contacts-section").style.display = "none";
+function updateOnlineStatus(isOnline, userId = null) {
+  const statusDot = document.querySelector('.status-dot');
+  const statusText = document.querySelector('.status-text');
+  const statusContainer = document.getElementById('online-status');
+  
+  if (statusContainer) {
+    statusContainer.style.display = 'flex';
     
-    // Hide start messaging prompt and show chat box
-    document.getElementById("start-messaging").style.display = "none";
-    document.getElementById("chat-box").style.display = "block";
-    
-    if (friendUsername) {
-        document.querySelector(".chat-header .center h2").textContent = `Chat with ${friendUsername}`;
-    } else {
-         document.querySelector(".chat-header .center h2").textContent = '';
-    }
-    
-    const chatBox = document.getElementById("chat-box");
-    const inputSection = document.getElementById("message-input-section");
-    while (chatBox.firstChild && chatBox.firstChild !== inputSection) {
-        chatBox.removeChild(chatBox.firstChild);
-    }
-    
-    document.getElementById("chat-message-input").focus();
-  }
-
-  // Fetch pending friend requests
-  function fetchPendingRequests() {
-    fetch('/pending_friend_requests/')
-      .then(response => response.json())
-      .then(data => {
-        const pendingRequestsList = document.getElementById("pending-requests");
-        pendingRequestsList.innerHTML = '';
-        if (data.requests && data.requests.length > 0) {
-          data.requests.forEach(request => {
-            const requestElement = document.createElement("div");
-            requestElement.textContent = `Friend request from ${request.sender_username}`;
-            requestElement.classList.add('pending-request-item');
-            requestElement.setAttribute('data-request-id', request.id);
-
-            const acceptButton = document.createElement("button");
-            acceptButton.textContent = "Accept";
-            acceptButton.classList.add('accept-button');
-            acceptButton.onclick = function(e) {
-              e.stopPropagation();
-              acceptFriendRequest(request.id, request.sender_username);
-            };
-            requestElement.appendChild(acceptButton);
-
-            const rejectButton = document.createElement("button");
-            rejectButton.textContent = "Reject";
-            rejectButton.classList.add('reject-button');
-            rejectButton.onclick = function(e) {
-              e.stopPropagation();
-              rejectFriendRequest(request.id);
-            };
-            requestElement.appendChild(rejectButton);
-
-            pendingRequestsList.appendChild(requestElement);
-          });
-        } else {
-          pendingRequestsList.innerHTML = '<div class="no-requests">No pending requests</div>';
-        }
-      })
-      .catch(error => console.error("Error fetching pending requests:", error));
-  }
-
-  // Send Friend Request to a specific user
-  function sendFriendRequest(userId) {
-    fetch(`/send_friend_request/${userId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFToken()
-      },
-      credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
+    if (statusDot && statusText) {
+      if (isOnline) {
+        statusDot.classList.remove('offline');
+        statusDot.classList.add('online');
+        statusText.textContent = 'Online';
       } else {
-        alert(data.message);
-        const buttons = document.querySelectorAll(`.contact-item button[onclick="sendFriendRequest(${userId})"]`);
-        buttons.forEach(button => {
-          button.disabled = true;
-          button.textContent = "Request Sent";
-        });
-        fetchContacts();
+        statusDot.classList.remove('online');
+        statusDot.classList.add('offline');
+        statusText.textContent = 'Offline';
       }
-    })
-    .catch(error => {
-      console.error("Error sending friend request:", error);
-      alert("Failed to send friend request");
-    });
-  }
-
-  // Function to get CSRF token from the page
-  function getCSRFToken() {
-    let csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
-    if (csrfToken) {
-        return csrfToken.value;
     }
-    console.error("CSRF token input field not found!");
-    return null;
   }
+}
 
-  // Accept a Friend Request
-  function acceptFriendRequest(requestId, senderUsername) {
-    console.log("Accepting request ID:", requestId);
-    const token = getCSRFToken();
-    if (!token) {
-        alert("CSRF token missing. Cannot proceed.");
-        return;
-    }
+function fetchContacts() {
+const query = document.getElementById('search-query').value;
+fetch(`/fetch_contacts/?q=${encodeURIComponent(query)}`)
+.then(response => response.json())
+.then(data => {
+const contactsList = document.getElementById("contacts-list");
+contactsList.innerHTML = '';
+if (data.users && data.users.length > 0) {
+data.users.forEach(user => {
+const contactElement = document.createElement("div");
+contactElement.textContent = user.username;
+contactElement.classList.add('contact-item');
 
-    fetch(`/accept_friend_request/${requestId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': token
-      },
-      credentials: 'same-origin'
-    })
-    .then(response => {
-      if (!response.ok) {
-          return response.json().then(errData => {
-               throw new Error(errData.error || `Server responded with status: ${response.status}`);
-           }).catch(() => {
-               throw new Error(`Network response was not ok. Status: ${response.status}`);
-           });
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Accept response data:", data);
-      if (data.success) {
-        const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
-        if (requestElement) {
-          const container = document.getElementById("pending-requests");
-          requestElement.remove();
-          console.log("Removed pending request item:", requestId);
+const friendRequestButton = document.createElement("button");
+friendRequestButton.textContent = "Add";
+friendRequestButton.classList.add('add-button');
+friendRequestButton.onclick = function() {
+sendFriendRequest(user.id);
+};
+contactElement.appendChild(friendRequestButton);
 
-          if (container.children.length === 0) {
-            container.innerHTML = '<div class="no-requests">No pending requests</div>';
-          }
+contactsList.appendChild(contactElement);
+});
+}
+})
+.catch(error => console.error("Error fetching contacts:", error));
+}
 
-          fetchFriends();
-        } else {
-            console.warn("Could not find request element to remove for ID:", requestId);
-            fetchFriends();
-            alert("Friend accepted, but the list item could not be removed automatically.");
-        }
-      } else {
-        alert(data.error || "Failed to accept friend request.");
-      }
-    })
-    .catch(error => {
-      console.error("Error accepting friend request:", error);
-      alert("Failed to accept friend request. Please try again.");
-    });
-  }
+function fetchFriends() {
+fetch('/get_friends/')
+.then(response => response.json())
+.then(data => {
+const friendsList = document.getElementById("friends-list");
+friendsList.innerHTML = '';
+if (data.friends && data.friends.length > 0) {
+data.friends.forEach(friend => {
+const friendElement = document.createElement("div");
+friendElement.textContent = friend.username;
+friendElement.classList.add('friend-item');
 
-  // Reject Friend Request
-  function rejectFriendRequest(requestId) {
-    console.log("Rejecting request ID:", requestId);
-    const token = getCSRFToken();
-    if (!token) {
-        alert("CSRF token missing. Cannot proceed.");
-        return;
-    }
+const statusIndicator = document.createElement("div");
+statusIndicator.classList.add('friend-status-indicator');
+if (friend.is_online) {
+  statusIndicator.classList.add('online');
+  statusIndicator.title = "Online";
+} else {
+  statusIndicator.classList.add('offline');
+  statusIndicator.title = "Offline";
+}
+friendElement.appendChild(statusIndicator);
 
-    fetch(`/reject_friend_request/${requestId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': token
-      },
-      credentials: 'same-origin'
-    })
-    .then(response => {
-       if (!response.ok) {
-           return response.json().then(errData => {
-                throw new Error(errData.error || `Server responded with status: ${response.status}`);
-            }).catch(() => {
-                throw new Error(`Network response was not ok. Status: ${response.status}`);
-            });
-       }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Reject response data:", data);
-      if (data.success) {
-        const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
-        if (requestElement) {
-          const container = document.getElementById("pending-requests");
-          requestElement.remove();
-          console.log("Removed pending request item:", requestId);
+const messageButton = document.createElement("button");
+messageButton.textContent = "Message";
+messageButton.classList.add('message-button');
+messageButton.onclick = function() {
+startChat(friend.id, friend.username, friend.is_online);
+};
+friendElement.appendChild(messageButton);
 
-           if (container.children.length === 0) {
-             container.innerHTML = '<div class="no-requests">No pending requests</div>';
-           }
-        } else {
-             console.warn("Could not find request element to remove for ID:", requestId);
-            alert("Friend request rejected, but the list item could not be removed automatically.");
-        }
-      } else {
-        alert(data.error || "Failed to reject friend request.");
-      }
-    })
-    .catch(error => {
-      console.error("Error rejecting friend request:", error);
-      alert("Failed to reject friend request. Please try again.");
-    });
-  }
+friendsList.appendChild(friendElement);
+});
+} else {
+friendsList.innerHTML = '<div class="no-friends">No friends yet</div>';
+}
+})
+.catch(error => console.error("Error fetching friends:", error));
+}
 
-  // WebSocket connection for chat
-  const chatSocket = new WebSocket(`ws://${window.location.host}/ws/messaging/`);
+function startChat(friendId, friendUsername, isOnline = false) {
+console.log("Starting chat with friend ID:", friendId);
+document.getElementById("contacts-section").style.display = "none";
+document.getElementById("start-messaging").style.display = "none";
+document.getElementById("chat-box").style.display = "block";
+
+if (friendUsername) {
+  // Set username with fancy styling
+  const usernameElement = document.querySelector(".chat-header .center h2");
+  usernameElement.textContent = friendUsername;
+  usernameElement.classList.add('active-chat-user');
+  
+  // Only show online status when in a chat
+  updateOnlineStatus(isOnline, friendId);
+  document.getElementById('online-status').style.display = 'flex';
+} else {
+  document.querySelector(".chat-header .center h2").textContent = '';
+  document.getElementById('online-status').style.display = 'none';
+}
+
+const chatBox = document.getElementById("chat-box");
+const messagesContainer = document.querySelector(".messages-container");
+messagesContainer.innerHTML = ''; // Clear previous messages
+
+document.getElementById("chat-message-input").focus();
+}
+
+function fetchPendingRequests() {
+fetch('/pending_friend_requests/')
+.then(response => response.json())
+.then(data => {
+const pendingRequestsList = document.getElementById("pending-requests");
+pendingRequestsList.innerHTML = '';
+if (data.requests && data.requests.length > 0) {
+data.requests.forEach(request => {
+const requestElement = document.createElement("div");
+requestElement.textContent = `Friend request from ${request.sender_username}`;
+requestElement.classList.add('pending-request-item');
+requestElement.setAttribute('data-request-id', request.id);
+
+const acceptButton = document.createElement("button");
+acceptButton.textContent = "Accept";
+acceptButton.classList.add('accept-button');
+acceptButton.onclick = function(e) {
+e.stopPropagation();
+acceptFriendRequest(request.id, request.sender_username);
+};
+requestElement.appendChild(acceptButton);
+
+const rejectButton = document.createElement("button");
+rejectButton.textContent = "Reject";
+rejectButton.classList.add('reject-button');
+rejectButton.onclick = function(e) {
+e.stopPropagation();
+rejectFriendRequest(request.id);
+};
+requestElement.appendChild(rejectButton);
+
+pendingRequestsList.appendChild(requestElement);
+});
+} else {
+pendingRequestsList.innerHTML = '<div class="no-requests">No pending requests</div>';
+}
+})
+.catch(error => console.error("Error fetching pending requests:", error));
+}
+
+function sendFriendRequest(userId) {
+fetch(`/send_friend_request/${userId}/`, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-CSRFToken': getCSRFToken()
+},
+credentials: 'same-origin'
+})
+.then(response => response.json())
+.then(data => {
+if (data.error) {
+alert(data.error);
+} else {
+alert(data.message);
+const buttons = document.querySelectorAll(`.contact-item button[onclick="sendFriendRequest(${userId})"]`);
+buttons.forEach(button => {
+button.disabled = true;
+button.textContent = "Request Sent";
+});
+fetchContacts();
+}
+})
+.catch(error => {
+console.error("Error sending friend request:", error);
+alert("Failed to send friend request");
+});
+}
+
+function getCSRFToken() {
+let csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
+if (csrfToken) {
+return csrfToken.value;
+}
+console.error("CSRF token input field not found!");
+return null;
+}
+
+function acceptFriendRequest(requestId, senderUsername) {
+console.log("Accepting request ID:", requestId);
+const token = getCSRFToken();
+if (!token) {
+alert("CSRF token missing. Cannot proceed.");
+return;
+}
+
+fetch(`/accept_friend_request/${requestId}/`, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-CSRFToken': token
+},
+credentials: 'same-origin'
+})
+.then(response => {
+if (!response.ok) {
+return response.json().then(errData => {
+throw new Error(errData.error || `Server responded with status: ${response.status}`);
+}).catch(() => {
+throw new Error(`Network response was not ok. Status: ${response.status}`);
+});
+}
+return response.json();
+})
+.then(data => {
+console.log("Accept response data:", data);
+if (data.success) {
+const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
+if (requestElement) {
+const container = document.getElementById("pending-requests");
+requestElement.remove();
+console.log("Removed pending request item:", requestId);
+
+if (container.children.length === 0) {
+container.innerHTML = '<div class="no-requests">No pending requests</div>';
+}
+
+fetchFriends();
+} else {
+console.warn("Could not find request element to remove for ID:", requestId);
+fetchFriends();
+alert("Friend accepted, but the list item could not be removed automatically.");
+}
+} else {
+alert(data.error || "Failed to accept friend request.");
+}
+})
+.catch(error => {
+console.error("Error accepting friend request:", error);
+alert("Failed to accept friend request. Please try again.");
+});
+}
+
+function rejectFriendRequest(requestId) {
+console.log("Rejecting request ID:", requestId);
+const token = getCSRFToken();
+if (!token) {
+alert("CSRF token missing. Cannot proceed.");
+return;
+}
+
+fetch(`/reject_friend_request/${requestId}/`, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-CSRFToken': token
+},
+credentials: 'same-origin'
+})
+.then(response => {
+if (!response.ok) {
+return response.json().then(errData => {
+throw new Error(errData.error || `Server responded with status: ${response.status}`);
+}).catch(() => {
+throw new Error(`Network response was not ok. Status: ${response.status}`);
+});
+}
+return response.json();
+})
+.then(data => {
+console.log("Reject response data:", data);
+if (data.success) {
+const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
+if (requestElement) {
+const container = document.getElementById("pending-requests");
+requestElement.remove();
+console.log("Removed pending request item:", requestId);
+
+if (container.children.length === 0) {
+container.innerHTML = '<div class="no-requests">No pending requests</div>';
+}
+} else {
+console.warn("Could not find request element to remove for ID:", requestId);
+alert("Friend request rejected, but the list item could not be removed automatically.");
+}
+} else {
+alert(data.error || "Failed to reject friend request.");
+}
+})
+.catch(error => {
+console.error("Error rejecting friend request:", error);
+alert("Failed to reject friend request. Please try again.");
+});
+}
+
+const chatSocket = new WebSocket(`ws://${window.location.host}/ws/messaging/`);
 
 chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    const chatBox = document.getElementById("chat-box");
-    const messageInputSection = document.getElementById("message-input-section");
-    
-    // Create message element
-    const messageElement = document.createElement("div");
-    messageElement.textContent = data.message;
-    
-    // Base styling for all messages
-    messageElement.style.padding = "10px 15px";
-    messageElement.style.borderRadius = "18px";
-    messageElement.style.maxWidth = "70%";
-    messageElement.style.marginBottom = "10px";
-    messageElement.style.wordBreak = "break-word";
-    
-    // Check if message is from current user
-    const isCurrentUser = data.sender === "{{ request.user.username }}";
-    
-    // Apply alignment and styling
-    if (isCurrentUser) {
-        // Your message (right side, blue)
-        messageElement.style.marginLeft = "auto";
-        messageElement.style.backgroundColor = "#2c7be5";
-        messageElement.style.color = "white";
-        messageElement.style.borderTopRightRadius = "4px";
-    } else {
-        // Other user's message (left side, gray)
-        messageElement.style.marginRight = "auto";
-        messageElement.style.backgroundColor = "#f0f2f5";
-        messageElement.style.color = "#050505";
-        messageElement.style.borderTopLeftRadius = "4px";
-    }
-    
-    // Insert message
-    if (messageInputSection) {
-        chatBox.insertBefore(messageElement, messageInputSection);
-    } else {
-        chatBox.appendChild(messageElement);
-    }
-    
-    // Auto-scroll to bottom
-    chatBox.scrollTop = chatBox.scrollHeight;
+const data = JSON.parse(e.data);
+const messagesContainer = document.querySelector(".messages-container");
+// Create message element
+const messageElement = document.createElement("div");
+messageElement.className = "message-wrapper";
+
+const messageContent = document.createElement("div");
+// Base styling for all messages
+messageContent.style.padding = "10px 15px";
+messageContent.style.borderRadius = "18px";
+messageContent.style.maxWidth = "70%";
+messageContent.style.wordBreak = "break-word";
+messageContent.style.position = "relative";
+
+// Add message text
+messageContent.textContent = data.message;
+
+// Check if message is from current user
+const isCurrentUser = data.sender === "{{ request.user.username }}";
+// Apply alignment and styling
+if (isCurrentUser) {
+// Your message (right side, blue)
+messageElement.className += " own-message";
+messageContent.style.backgroundColor = "#2c7be5";
+messageContent.style.color = "white";
+messageContent.style.borderTopRightRadius = "4px";
+messageContent.dataset.sent = "true";
+} else {
+// Other user's message (left side, gray)
+messageContent.style.backgroundColor = "#f0f2f5";
+messageContent.style.color = "#050505";
+messageContent.style.borderTopLeftRadius = "4px";
+messageContent.dataset.seen = "false";
+}
+
+// Add timestamp element
+const timestamp = document.createElement("div");
+timestamp.className = "message-timestamp";
+timestamp.textContent = data.timestamp || getCurrentTimeFormatted();
+messageContent.appendChild(timestamp);
+
+// Add read receipt for own messages
+if (isCurrentUser) {
+const readReceipt = document.createElement("div");
+readReceipt.className = "read-receipt";
+// Double checkmark for read, single for sent
+readReceipt.innerHTML = "✓"; // Default to single checkmark
+messageContent.appendChild(readReceipt);
+}
+
+messageElement.appendChild(messageContent);
+messagesContainer.appendChild(messageElement);
+
+// Auto-scroll to bottom
+messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+// Simulate message seen after a delay for demo purposes
+if (!isCurrentUser) {
+// Send a "seen" acknowledgment for the other person's messages
+setTimeout(() => {
+messageContent.dataset.seen = "true";
+// Update server that message was seen
+chatSocket.send(JSON.stringify({
+"action": "mark_seen",
+"message_id": data.id
+}));
+}, 2000);
+} else {
+// For our own messages, simulate them being "seen" after a delay
+setTimeout(() => {
+const readReceipts = document.querySelectorAll(".read-receipt");
+readReceipts.forEach(receipt => {
+receipt.innerHTML = "✓✓";
+});
+}, 3000);
+}
 };
 
 chatSocket.onclose = function() {
-    console.error("WebSocket closed unexpectedly");
+console.error("WebSocket closed unexpectedly");
 };
 
 function sendMessage() {
-    const messageInput = document.getElementById("chat-message-input");
-    const message = messageInput.value.trim();
-    if (message !== "") {
-        chatSocket.send(JSON.stringify({
-            "message": message,
-            // No need to send sender here - backend will add it
-        }));
-        messageInput.value = "";
-    }
+const messageInput = document.getElementById("chat-message-input");
+const message = messageInput.value.trim();
+if (message !== "") {
+chatSocket.send(JSON.stringify({
+"message": message,
+"timestamp": getCurrentTimeFormatted()
+// No need to send sender here - backend will add it
+}));
+messageInput.value = "";
+}
 }
 
 document.getElementById("send-button").onclick = sendMessage;
 
 document.getElementById("chat-message-input").addEventListener("keypress", function(event) {
-    if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-    }
+if (event.key === "Enter" && !event.shiftKey) {
+event.preventDefault();
+sendMessage();
+}
 });
 
-  // Search Form Handling
-  document.getElementById('search-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    fetchContacts();
-  });
+document.getElementById('search-form').addEventListener('submit', function(event) {
+event.preventDefault();
+fetchContacts();
+});
 </script>
 <style>
-  /* ===== UNCHANGED STYLES ===== */
-  body {
-    background-color: white;
-  }
+body {
+background-color: white;
+}
 
-  .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: white;
-  }
+.chat-container {
+display: flex;
+flex-direction: column;
+height: 100vh;
+background-color: white;
+}
 
-  .chat-header {
-    display: flex;
-    align-items: center;
-    background-color: white;
-    color: black;
-    padding: 15px;
-  }
+.chat-header {
+display: flex;
+align-items: center;
+background-color: white;
+color: black;
+padding: 15px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
-  .chat-header .left {
-    /* Profile button will naturally align to the left */
-  }
+.chat-header .left {
+width: 50px;
+}
 
-  .chat-header .center {
-    flex-grow: 1;
-    text-align: center;
-  }
+.chat-header .center {
+flex-grow: 1;
+text-align: center;
+}
 
-  .chat-header .right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-  }
+.chat-header .right {
+margin-left: auto;
+display: flex;
+align-items: center;
+}
 
-  #logout-button, #profile-button, #contacts-button {
-    background-color: #000000;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 5px;
-  }
+.active-chat-user {
+display: inline-block;
+background: linear-gradient(to right, #4CAF50, #2196F3);
+color: white;
+padding: 6px 15px;
+border-radius: 20px;
+font-weight: bold;
+box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+margin-bottom: 5px;
+}
 
-  #pending-requests {
-    margin-top: 20px;
-  }
+#logout-button, #contacts-button {
+background-color: #000000;
+color: white;
+border: none;
+padding: 8px 15px;
+border-radius: 4px;
+cursor: pointer;
+margin-left: 5px;
+}
 
-  .pending-request-item {
-    padding: 8px 0;
-    border-bottom: 1px solid #ccc;
-  }
+#pending-requests {
+margin-top: 20px;
+}
 
-  .accept-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+.pending-request-item {
+padding: 8px 0;
+border-bottom: 1px solid #ccc;
+}
 
-  .reject-button {
-    background-color: #f44336;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+.accept-button {
+background-color: #4CAF50;
+color: white;
+border: none;
+padding: 8px 15px;
+border-radius: 4px;
+cursor: pointer;
+}
 
-  .add-button {
-    background-color: #000000;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+.reject-button {
+background-color: #f44336;
+color: white;
+border: none;
+padding: 8px 15px;
+border-radius: 4px;
+cursor: pointer;
+}
 
-  .add-button:hover {
-    background-color: #444444;
-  }
+.add-button {
+background-color: #000000;
+color: white;
+border: none;
+padding: 8px 15px;
+border-radius: 4px;
+cursor: pointer;
+}
 
-  #contacts-list {
-    list-style-type: none;
-    padding: 0;
-  }
+.add-button:hover {
+background-color: #444444;
+}
 
-  .contact-item {
-    padding: 8px 0;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
-  }
+#contacts-list {
+list-style-type: none;
+padding: 0;
+}
 
-  .contact-item:hover {
-    background-color: #e8e8e8;
-  }
+.contact-item {
+padding: 8px 0;
+border-bottom: 1px solid #ccc;
+cursor: pointer;
+}
 
-  .start-messaging {
-    text-align: center;
-    margin: auto;
-    padding: 20px;
-    color: #666;
-  }
+.contact-item:hover {
+background-color: #e8e8e8;
+}
 
-  .start-messaging h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
+.start-messaging {
+text-align: center;
+margin: auto;
+padding: 20px;
+color: #666;
+}
 
-  .start-messaging p {
-    font-size: 16px;
-  }
+.start-messaging h3 {
+font-size: 24px;
+margin-bottom: 10px;
+}
 
-  button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: #666 !important;
-  }
+.start-messaging p {
+font-size: 16px;
+}
 
-  /* ===== MODIFIED STYLES ===== */
-  
-  /* Chat box - added overflow hidden */
-  #chat-box {
-    display: flex;
-    flex-direction: column;
-    height: 60vh;
-    width: 70%;
-    margin: auto;
-    padding: 15px;
-    background-color: rgb(232, 232, 234);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden; /* NEW - contains scrolling */
-  }
+button:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+background-color: #666 !important;
+}
 
-  /* Messages container - now properly scrollable */
-  .messages-container {
-    flex: 1;
-    overflow-y: auto; /* NEW - enables scrolling */
-    padding-bottom: 80px; /* NEW - space for input */
-    scrollbar-width: thin; /* NEW - cleaner scrollbar */
-    height: 0; /* NEW - flexbox fix */
-    min-height: 100%; /* NEW - ensures expansion */
-  }
+#chat-box {
+display: flex;
+flex-direction: column;
+height: 60vh;
+width: 70%;
+margin: auto;
+padding: 15px;
+background-color: rgb(232, 232, 234);
+border-radius: 8px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+position: relative;
+overflow: hidden;
+}
 
-  /* Input section - fixed alignment */
-  #message-input-section {
-    position: absolute; /* NEW - locks position */
-    bottom: 15px; /* NEW - sticks to bottom */
-    left: 15px;
-    right: 15px;
-    background: white;
-    padding: 12px;
-    border-radius: 8px;
-    display: flex; /* NEW - flex layout */
-    align-items: center; /* NEW - vertical align */
-    gap: 10px; /* NEW - spacing */
-    z-index: 2; /* NEW - stays on top */
-  }
+.messages-container {
+flex: 1;
+overflow-y: auto;
+padding: 15px;
+padding-bottom: 80px;
+scrollbar-width: thin;
+scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
 
-  /* Input field - full width */
-  #chat-message-input {
-    flex: 1; /* NEW - takes available space */
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-  }
+.messages-container::-webkit-scrollbar {
+width: 6px;
+}
 
-  /* Send button - proper alignment */
-  #send-button {
-    flex-shrink: 0; /* NEW - prevents squishing */
-    background-color: #707d8c;
-    color: white;
-    border: none;
-    padding: 10px 20px; /* NEW - better proportions */
-    border-radius: 20px; /* NEW - matches input */
-    cursor: pointer;
-  }
+.messages-container::-webkit-scrollbar-track {
+background: transparent;
+}
 
-  #send-button:hover {
-    background-color: #45a049;
-  }
+.messages-container::-webkit-scrollbar-thumb {
+background-color: rgba(0,0,0,0.2);
+border-radius: 3px;
+}
+
+.message-wrapper {
+display: flex;
+margin-bottom: 16px;
+width: 100%;
+}
+
+.message-wrapper.own-message {
+justify-content: flex-end;
+}
+
+.message-timestamp {
+font-size: 10px;
+opacity: 0.7;
+margin-top: 4px;
+position: absolute;
+bottom: 2px;
+right: 8px;
+}
+
+.read-receipt {
+font-size: 10px;
+opacity: 0.7;
+position: absolute;
+bottom: 2px;
+right: 50px;
+}
+
+#message-input-section {
+position: absolute;
+bottom: 15px;
+left: 15px;
+right: 15px;
+background: white;
+padding: 12px;
+border-radius: 8px;
+display: flex;
+align-items: center;
+gap: 10px;
+z-index: 10;
+box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+#chat-message-input {
+flex: 1;
+padding: 12px;
+font-size: 16px;
+border: 1px solid #ccc;
+border-radius: 20px;
+}
+
+#send-button {
+flex-shrink: 0;
+background-color: #707d8c;
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 20px;
+cursor: pointer;
+transition: background-color 0.2s;
+}
+
+#send-button:hover {
+background-color: #45a049;
+}
+
+/* Online status indicator styling */
+.online-status-indicator {
+display: flex;
+align-items: center;
+justify-content: center;
+margin-top: 5px;
+}
+
+.status-dot {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+margin-right: 5px;
+}
+
+.status-dot.online {
+background-color: #4CAF50;
+}
+
+.status-dot.offline {
+background-color: #ccc;
+}
+
+.status-text {
+font-size: 12px;
+color: #666;
+}
+
+/* Friend status indicators */
+.friend-status-indicator {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+display: inline-block;
+margin-left: 5px;
+}
+
+.friend-status-indicator.online {
+background-color: #4CAF50;
+}
+
+.friend-status-indicator.offline {
+background-color: #ccc;
+}
+
+.friend-item {
+display: flex;
+align-items: center;
+padding: 8px 0;
+border-bottom: 1px solid #ccc;
+}
+
+.message-button {
+margin-left: auto;
+background-color: #2196F3;
+color: white;
+border: none;
+padding: 5px 10px;
+border-radius: 4px;
+cursor: pointer;
+}
+
+.message-button:hover {
+background-color: #0b7dda;
+}
+
+.no-friends, .no-requests {
+color: #888;
+text-align: center;
+padding: 10px;
+font-style: italic;
+}
 </style>
 {% endblock %}
