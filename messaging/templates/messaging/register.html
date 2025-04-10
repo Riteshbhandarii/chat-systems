@@ -2,44 +2,188 @@
 
 {% block content %}
 <div class="register-container">
-    <h2>Create Your Account</h2>
-    <form method="post" class="register-form">
-        {% csrf_token %}
+    <div class="register-card">
+        <h2 class="register-title">Create Your Account</h2>
         
-        <div class="form-group">
-            <label for="{{ form.username.id_for_label }}">Username</label>
-            {{ form.username }}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.email.id_for_label }}">Email (Optional)</label>
-            {{ form.email }}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.password.id_for_label }}">Password</label>
-            {{ form.password }}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.password_confirm.id_for_label }}">Confirm Password</label>
-            {{ form.password_confirm }}
-        </div>
+        <form method="post" class="register-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                <div class="input-container">
+                    <span class="input-icon">👤</span>
+                    {{ form.username }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email (Optional)</label>
+                <div class="input-container">
+                    <span class="input-icon">✉️</span>
+                    {{ form.email }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                <div class="input-container">
+                    <span class="input-icon">🔒</span>
+                    {{ form.password }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password_confirm.id_for_label }}" class="form-label">Confirm Password</label>
+                <div class="input-container">
+                    <span class="input-icon">🔒</span>
+                    {{ form.password_confirm }}
+                </div>
+            </div>
 
-        {% if form.errors %}
-        <div class="error-messages">
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <p class="error">{{ error }}</p>
+            {% if form.errors %}
+            <div class="error-messages">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <p class="error">{{ error }}</p>
-            {% endfor %}
-        </div>
-        {% endif %}
-        
-        <button type="submit" class="register-button">Register</button>
-    </form>
+                {% for error in form.non_field_errors %}
+                    <p class="error-message">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <button type="submit" class="register-button">Register</button>
+            
+            <div class="login-link">
+                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            </div>
+        </form>
+    </div>
 </div>
+
+<style>
+    body {
+        background-color: #121212;
+        margin: 0;
+        overflow-x: hidden; /* Prevents horizontal scrollbar */
+    }
+    
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        background-color: #121212;
+    }
+    
+    .register-card {
+        background-color: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        width: 100%;
+        max-width: 450px;
+        border: 1px solid #333; /* Added subtle border */
+    }
+    
+    .register-title {
+        color: #ffffff;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        color: #b3b3b3;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .input-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+    
+    input {
+        width: 100%;
+        padding: 12px 15px 12px 40px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background-color: #2d2d2d;
+        color: #ffffff;
+        font-size: 15px;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+    
+    input:focus {
+        outline: none;
+        border-color: #555;
+        background-color: #333;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    }
+    
+    .error-messages {
+        background-color: #2d2d2d;
+        border-left: 3px solid #ff4444;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+    }
+    
+    .error-message {
+        color: #ff4444;
+        margin: 5px 0;
+        font-size: 13px;
+    }
+    
+    .register-button {
+        width: 100%;
+        padding: 14px;
+        background-color: #3a3a3a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-top: 10px;
+    }
+    
+    .register-button:hover {
+        background-color: #4a4a4a;
+    }
+    
+    .login-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #b3b3b3;
+        font-size: 14px;
+    }
+    
+    .login-link a {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}
