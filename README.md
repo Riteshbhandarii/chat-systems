@@ -35,10 +35,3 @@ A real-time chat application built with **Django**, **Django Channels**, **WebSo
 
 ---
 
-## ⚙️ How to Run Locally
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-username/chat-system.git
-cd chat-system
