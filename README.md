@@ -31,7 +31,7 @@ A real-time chat application built with **Django**, **Django Channels**, **WebSo
 - **WebSocket Layer**: ASGI, Channels Consumers
 - **Message Broker**: Redis
 - **Frontend**: HTML, CSS, JavaScript
-- **Database**: SQLite/PostgreSQL (Django ORM)
+- **Database**: PostgreSQL (Django ORM)
 
 ---
 
