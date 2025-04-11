@@ -18,8 +18,7 @@ A real-time chat application built with **Django**, **Django Channels**, **WebSo
 ## 🗺️ Architecture Overview
 
 <p align="center">
-  <img src=![Untitled diagram-2025-04-11-093030](https://github.com/user-attachments/assets/a9cdfda5-02a3-4a8a-9763-ee22aeee7920)
-"assets/chat_architecture.png" alt="Chat Architecture" width="700"/>
+  <img src="https://github.com/user-attachments/assets/a9cdfda5-02a3-4a8a-9763-ee22aeee7920/Untitled%20diagram-2025-04-11-093030.png" alt="Chat Architecture" width="700"/>
 </p>
 
 > The system uses WebSockets to maintain a persistent connection between the frontend and backend. Redis serves as a message broker via Django Channels' channel layer. All chat logic is handled in a single template with a JavaScript WebSocket client.
