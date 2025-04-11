@@ -12,8 +12,8 @@ from django.contrib.auth.forms import AuthenticationForm
 # Home view - redirects to chat if logged in, else to login
 def home_view(request):
     if request.user.is_authenticated:
-        return redirect('chat_room', room_name='general')
-    return redirect('login')
+        return redirect('chat_room', room_name='general')  # Redirect to chat if authenticated
+    return render(request, 'messaging/home.html')  # Render home.html for unauthenticated users
 
 # Registration view
 def register_view(request):
@@ -61,7 +61,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.success(request, "You have successfully logged out.")
-    return redirect('login')
+    return redirect('home')
 
 # Chat room view
 @login_required
