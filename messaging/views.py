@@ -130,7 +130,6 @@ def decline_friend_request(request, request_id):
 
     except Exception as e:
         return JsonResponse({"error": f"Failed to decline friend request: {str(e)}"})
-
 # User search
 @login_required
 def search_users(request):
