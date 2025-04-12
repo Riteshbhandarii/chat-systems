@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings  
-
 class Friend(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friends")
     friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friend_of")
+    created_at = models.DateTimeField(auto_now_add=True)  # Add this field to capture when the friendship is created
 
     class Meta:
         unique_together = ('user', 'friend')
@@ -29,15 +29,8 @@ class FriendRequest(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     
     def accept(self):
-        self.status = self.ACCEPTED
-        self.save()
-        
-    def decline(self):
-        self.status = self.DECLINED
-        self.save()
-
-    def accept(self):
         if self.status == self.PENDING:
+            # Create friend relationships
             Friend.objects.get_or_create(user=self.sender, friend=self.receiver)
             Friend.objects.get_or_create(user=self.receiver, friend=self.sender)
             self.status = self.ACCEPTED

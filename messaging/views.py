@@ -4,10 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from .models import FriendRequest, Friend, Groupchat, Groupmchatmessage 
+from .models import FriendRequest, Friend, Groupchat, Groupmchatmessage
 from .forms import RegisterForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
+from django.utils import timezone
 
 # Home view - redirects to chat if logged in, else to login
 def home_view(request):
@@ -36,9 +37,6 @@ def register_view(request):
             # Log the user in after registration
             login(request, user)
 
-            # Debugging: Print if user is logged in
-            print("User logged in:", request.user.username)
-            
             messages.success(request, 'Registration successful!')
             return redirect('chat_room', room_name='general')
         
@@ -64,9 +62,6 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-
-                # Debugging: Print user after login
-                print("User authenticated:", user.username)
                 return redirect('chat_room', room_name='general')
         messages.error(request, "Invalid username or password.")
     else:
@@ -83,13 +78,7 @@ def logout_view(request):
 # Chat room view
 @login_required
 def chat_room(request, room_name):
-    # Get pending friend requests
-    friend_requests = FriendRequest.objects.filter(
-        receiver=request.user, 
-        status='pending'
-    ).select_related('sender')
-
-    # Fetch friends
+    friend_requests = FriendRequest.objects.filter(receiver=request.user, status='pending').select_related('sender')
     friends = Friend.objects.filter(user=request.user)
     
     return render(request, 'messaging/chat_room.html', {
@@ -122,6 +111,26 @@ def send_friend_request(request, user_id):
         "request_id" : friend_request.id
     })
 
+# Decline friend request
+@login_required
+def decline_friend_request(request, request_id):
+    try:
+        # Fetch the FriendRequest object by its ID
+        friend_request = get_object_or_404(FriendRequest, id=request_id, receiver=request.user)
+
+        # Ensure that the request is still pending
+        if friend_request.status != 'pending':
+            return JsonResponse({"error": "This friend request has already been processed."})
+
+        # Mark the request as declined
+        friend_request.status = 'declined'
+        friend_request.save()
+
+        return JsonResponse({"success": True, "message": "Friend request declined."})
+
+    except Exception as e:
+        return JsonResponse({"error": f"Failed to decline friend request: {str(e)}"})
+
 # User search
 @login_required
 def search_users(request):
@@ -132,24 +141,40 @@ def search_users(request):
     return JsonResponse({'users': users_data})
 
 # Friend request management
+
 @login_required
 def accept_friend_request(request, request_id):
-    friend_request = get_object_or_404(FriendRequest, id=request_id, receiver=request.user)
-    friend_request.status = 'accepted'
-    friend_request.save()
+    try:
+        # Fetch the FriendRequest object by its ID
+        friend_request = get_object_or_404(FriendRequest, id=request_id, receiver=request.user)
 
-    # Create friend relationships
-    Friend.objects.get_or_create(user=request.user, friend=friend_request.sender)
-    Friend.objects.get_or_create(user=friend_request.sender, friend=request.user)
+        # Ensure that the request is still pending
+        if friend_request.status != 'pending':
+            return JsonResponse({"error": "This friend request has already been processed."})
 
-    return JsonResponse({"success": True, "message": "Friend request accepted"})
+        # Mark the request as accepted
+        friend_request.status = 'accepted'
+        friend_request.save()
 
-@login_required
-def decline_friend_request(request, request_id):
-    friend_request = get_object_or_404(FriendRequest, id=request_id, receiver=request.user)
-    friend_request.status = 'declined'
-    friend_request.save()
-    return JsonResponse({"message": "Friend request declined"})
+        # Create the friendship between the receiver and sender if not exists
+        if not Friend.objects.filter(user=request.user, friend=friend_request.sender).exists():
+            Friend.objects.create(
+                user=request.user, 
+                friend=friend_request.sender,
+                created_at=timezone.now()  # Manually set the created_at field
+            )
+
+        if not Friend.objects.filter(user=friend_request.sender, friend=request.user).exists():
+            Friend.objects.create(
+                user=friend_request.sender, 
+                friend=request.user,
+                created_at=timezone.now()  # Manually set the created_at field
+            )
+
+        return JsonResponse({"success": True, "message": "Friend request accepted."})
+
+    except Exception as e:
+        return JsonResponse({"error": f"Failed to accept friend request: {str(e)}"})
 
 # Contacts and friends
 @login_required
