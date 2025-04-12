@@ -31,14 +31,7 @@ A real-time chat application built with **Django**, **Django Channels**, **WebSo
 - **WebSocket Layer**: ASGI, Channels Consumers
 - **Message Broker**: Redis
 - **Frontend**: HTML, CSS, JavaScript
-- **Database**: SQLite/PostgreSQL (Django ORM)
+- **Database**: PostgreSQL (Django ORM)
 
 ---
 
-## ⚙️ How to Run Locally
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-username/chat-system.git
-cd chat-system
