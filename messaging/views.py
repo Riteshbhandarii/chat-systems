@@ -23,11 +23,20 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            # Create user object but don’t save to DB yet
+            user = form.save(commit=False)
+
+            # Hash the password
+            raw_password = form.cleaned_data.get('password')
+            user.set_password(raw_password)
+
+            user.is_active = True  # just to be safe
+            user.save()
+
             login(request, user)
             messages.success(request, 'Registration successful!')
             return redirect('chat_room', room_name='general')
-        
+
         # Show form errors
         for field, errors in form.errors.items():
             for error in errors:
@@ -36,7 +45,6 @@ def register_view(request):
         form = RegisterForm()
 
     return render(request, 'messaging/register.html', {'form': form})
-
 # Login view
 def login_view(request):
     if request.user.is_authenticated:
@@ -101,7 +109,8 @@ def send_friend_request(request, user_id):
     
     return JsonResponse({
         "message": f"Friend request sent to {receiver.username}.",
-        "sender_username": request.user.username
+        "sender_username": request.user.username,
+        "request_id" : friend_request.id
     })
 
 # User search
@@ -124,7 +133,7 @@ def accept_friend_request(request, request_id):
     Friend.objects.get_or_create(user=request.user, friend=friend_request.sender)
     Friend.objects.get_or_create(user=friend_request.sender, friend=request.user)
 
-    return JsonResponse({"message": "Friend request accepted"})
+    return JsonResponse({"success": True, "message": "Friend request accepted"})
 
 @login_required
 def decline_friend_request(request, request_id):
