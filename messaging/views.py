@@ -33,10 +33,15 @@ def register_view(request):
             user.is_active = True  # just to be safe
             user.save()
 
+            # Log the user in after registration
             login(request, user)
+
+            # Debugging: Print if user is logged in
+            print("User logged in:", request.user.username)
+            
             messages.success(request, 'Registration successful!')
             return redirect('chat_room', room_name='general')
-
+        
         # Show form errors
         for field, errors in form.errors.items():
             for error in errors:
@@ -45,6 +50,7 @@ def register_view(request):
         form = RegisterForm()
 
     return render(request, 'messaging/register.html', {'form': form})
+
 # Login view
 def login_view(request):
     if request.user.is_authenticated:
@@ -58,6 +64,9 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
+
+                # Debugging: Print user after login
+                print("User authenticated:", user.username)
                 return redirect('chat_room', room_name='general')
         messages.error(request, "Invalid username or password.")
     else:
