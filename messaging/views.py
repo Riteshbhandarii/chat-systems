@@ -255,3 +255,27 @@ def get_friends(request):
         "username": friend.friend.username
     } for friend in friends]
     return JsonResponse({"friends": friends_data})
+
+
+
+@login_required
+def delete_account(request):
+    if request.method == 'POST':
+        try:
+            user = request.user
+            user.delete()  # Delete the logged-in user's account
+            
+            # Clear the session after deletion
+            request.session.flush()
+
+            # Show success message after account deletion
+            messages.success(request, "Your account has been deleted successfully.")
+
+            # Redirect to home after clearing the session
+            return redirect('home')  # Redirect to the home page after deletion
+        except Exception as e:
+            messages.error(request, f"An error occurred while deleting your account: {str(e)}")
+            return redirect('home')  # Redirect to home if an error occurs
+
+    # If the method is GET, you can directly redirect to home without any confirmation.
+    return redirect('home')

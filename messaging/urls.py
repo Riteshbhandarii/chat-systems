@@ -18,4 +18,9 @@ urlpatterns = [
     path('pending_friend_requests/', views.pending_friend_requests, name='pending_friend_requests'),
 
     path('get_friends/', views.get_friends, name='get_friends'),
+
+    # deleting account
+    path('accounts/login/', views.login_view, name='login'),
+    path('delete_account/', views.delete_account, name='delete_account'),
+
 ]

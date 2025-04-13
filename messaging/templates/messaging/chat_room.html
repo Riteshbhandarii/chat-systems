@@ -13,10 +13,13 @@
 </div>
 </div>
 <div class="right">
-<button id="contacts-button" onclick="toggleContacts()">Contacts</button>
-<button id="logout-button" onclick="window.location.href = '/logout/'">
-Logout
-</button>
+  <button id="delete-account-button" onclick="deleteAccount()">
+    Delete Account
+  </button>
+  <button id="contacts-button" onclick="toggleContacts()">Contacts</button>
+  <button id="logout-button" onclick="window.location.href = '/logout/'">
+    Logout
+  </button>
 </div>
 </div>
 
@@ -472,6 +475,33 @@ document.getElementById('search-form').addEventListener('submit', function(event
 event.preventDefault();
 fetchContacts();
 });
+  document.getElementById('search-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    fetchContacts();
+  });
+
+  function deleteAccount() {
+  if (confirm("Are you sure you want to delete your account? This action is permanent.")) {
+    fetch('/delete_account/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),  // Ensure CSRF token is included
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())  // Parse the response as JSON
+    .then(data => {
+      if (data.success) {
+        window.location.href = '/';  // Redirect to homepage
+      }
+    })
+    .catch(() => {
+      window.location.href = '/';  // Redirect to homepage even if there's an error
+    });
+  }
+}
+
+
 </script>
 <style>
 body {
@@ -777,5 +807,19 @@ text-align: center;
 padding: 10px;
 font-style: italic;
 }
+#delete-account-button {
+  background-color: red; /* Red background */
+  color: white; /* White text */
+  border: none; /* No border */
+  padding: 10px 20px; /* Adjust padding to match other buttons */
+  font-size: 13px; /* Match the font size with other buttons */
+  cursor: pointer; /* Pointer cursor on hover */
+  border-radius: 5px; /* Rounded corners, adjust as needed */
+}
+
+#delete-account-button:hover {
+  background-color: darkred; /* Darker red on hover */
+}
+
 </style>
 {% endblock %}
