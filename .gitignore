@@ -1,2 +1,42 @@
 .env
 
+# Python
+*.pyc
+__pycache__/
+
+# Environment
+env/
+venv/
+cbc_env/
+
+# Django
+*.sqlite3
+*.log
+*.pot
+*.py[cod]
+*.so
+db.sqlite3
+
+# Postgres doesn't save db locally, so nothing special needed
+
+# VS Code
+.vscode/
+
+# macOS/Linux
+.DS_Store
+Thumbs.db
+
+# Migrations (optional – you can exclude them if you don’t want to version control them)
+# ** ONLY IF you're regenerating migrations on deploy
+# ** If not, then keep them!
+# */migrations/*.py
+# */migrations/*.pyc
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Static & media files (optional – if collected/generated)
+staticfiles/
+media/
