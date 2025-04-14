@@ -230,6 +230,60 @@ def send_group_message(request, group_id):
 
     return render(request, 'messaging/chat_room.html', {'group_chat': group_chat})
 
+@login_required
+def list_group_chats(request):
+    group_chats = Groupchat.objects.filter(members=request.user)
+    
+    return render(request, 'messaging/chat_room.html', {
+        'group_chats': group_chats
+    })
+
+# views.py
+@login_required
+def add_member_to_group(request, group_id):
+    group_chat = get_object_or_404(Groupchat, id=group_id)
+    
+    # Check if the user is the group owner (if you have ownership logic)
+    if request.user not in group_chat.members.all():
+        return JsonResponse({"error": "You are not a member of this group."})
+    
+    # Get the list of friends
+    friends = Friend.objects.filter(user=request.user)
+    
+    # Handling the friend to add
+    if request.method == 'POST':
+        friend_id = request.POST.get('friend_id')  # ID of the friend to add
+        friend = get_object_or_404(User, id=friend_id)
+        
+        # Ensure the user is actually friends
+        if not Friend.objects.filter(user=request.user, friend=friend).exists():
+            return JsonResponse({"error": "You can only add your friends to the group."})
+        
+        # Add the friend to the group chat
+        group_chat.members.add(friend)
+        
+        return JsonResponse({"success": True, "message": f"{friend.username} has been added to the group."})
+
+    return render(request, 'messaging/add_member_to_group.html', {
+        'group_chat': group_chat,
+        'friends': friends
+    })
+
+@login_required
+def group_chat_room(request, group_id):
+    group_chat = get_object_or_404(Groupchat, id=group_id)
+    
+    # Ensure user is part of the group chat
+    if request.user not in group_chat.members.all():
+        return redirect('home')  # Redirect if not a member of the group
+    
+    messages = Groupmchatmessage.objects.filter(group_chat=group_chat)
+    
+    return render(request, 'messaging/chat_room.html', {
+        'group_chat': group_chat,
+        'messages': messages
+    })
+
 # Friend requests management
 @login_required
 def pending_friend_requests(request):
