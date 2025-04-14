@@ -57,17 +57,19 @@ style="flex: 1; display: flex; flex-direction: column; justify-content: center; 
 </div>
 
 <script>
-// All JavaScript remains exactly the same as before
+// Global variable to hold the WebSocket connection
+let chatSocket = null;
+
 function toggleContacts() {
-const contactsSection = document.getElementById("contacts-section");
-if (contactsSection.style.display === "none") {
-contactsSection.style.display = "block";
-fetchContacts();
-fetchFriends();
-fetchPendingRequests();
-} else {
-contactsSection.style.display = "none";
-}
+  const contactsSection = document.getElementById("contacts-section");
+  if (contactsSection.style.display === "none") {
+    contactsSection.style.display = "block";
+    fetchContacts();
+    fetchFriends();
+    fetchPendingRequests();
+  } else {
+    contactsSection.style.display = "none";
+  }
 }
 
 function getCurrentTimeFormatted() {
@@ -103,384 +105,396 @@ function updateOnlineStatus(isOnline, userId = null) {
 }
 
 function fetchContacts() {
-const query = document.getElementById('search-query').value;
-fetch(`/fetch_contacts/?q=${encodeURIComponent(query)}`)
-.then(response => response.json())
-.then(data => {
-const contactsList = document.getElementById("contacts-list");
-contactsList.innerHTML = '';
-if (data.users && data.users.length > 0) {
-data.users.forEach(user => {
-const contactElement = document.createElement("div");
-contactElement.textContent = user.username;
-contactElement.classList.add('contact-item');
+  const query = document.getElementById('search-query').value;
+  fetch(`/fetch_contacts/?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+      const contactsList = document.getElementById("contacts-list");
+      contactsList.innerHTML = '';
+      if (data.users && data.users.length > 0) {
+        data.users.forEach(user => {
+          const contactElement = document.createElement("div");
+          contactElement.textContent = user.username;
+          contactElement.classList.add('contact-item');
 
-const friendRequestButton = document.createElement("button");
-friendRequestButton.textContent = "Add";
-friendRequestButton.classList.add('add-button');
-friendRequestButton.onclick = function() {
-sendFriendRequest(user.id);
-};
-contactElement.appendChild(friendRequestButton);
+          const friendRequestButton = document.createElement("button");
+          friendRequestButton.textContent = "Add";
+          friendRequestButton.classList.add('add-button');
+          friendRequestButton.onclick = function() {
+            sendFriendRequest(user.id);
+          };
+          contactElement.appendChild(friendRequestButton);
 
-contactsList.appendChild(contactElement);
-});
-}
-})
-.catch(error => console.error("Error fetching contacts:", error));
+          contactsList.appendChild(contactElement);
+        });
+      }
+    })
+    .catch(error => console.error("Error fetching contacts:", error));
 }
 
 function fetchFriends() {
-fetch('/get_friends/')
-.then(response => response.json())
-.then(data => {
-const friendsList = document.getElementById("friends-list");
-friendsList.innerHTML = '';
-if (data.friends && data.friends.length > 0) {
-data.friends.forEach(friend => {
-const friendElement = document.createElement("div");
-friendElement.textContent = friend.username;
-friendElement.classList.add('friend-item');
+  fetch('/get_friends/')
+    .then(response => response.json())
+    .then(data => {
+      const friendsList = document.getElementById("friends-list");
+      friendsList.innerHTML = '';
+      if (data.friends && data.friends.length > 0) {
+        data.friends.forEach(friend => {
+          const friendElement = document.createElement("div");
+          friendElement.textContent = friend.username;
+          friendElement.classList.add('friend-item');
 
-const statusIndicator = document.createElement("div");
-statusIndicator.classList.add('friend-status-indicator');
-if (friend.is_online) {
-  statusIndicator.classList.add('online');
-  statusIndicator.title = "Online";
-} else {
-  statusIndicator.classList.add('offline');
-  statusIndicator.title = "Offline";
-}
-friendElement.appendChild(statusIndicator);
+          const statusIndicator = document.createElement("div");
+          statusIndicator.classList.add('friend-status-indicator');
+          if (friend.is_online) {
+            statusIndicator.classList.add('online');
+            statusIndicator.title = "Online";
+          } else {
+            statusIndicator.classList.add('offline');
+            statusIndicator.title = "Offline";
+          }
+          friendElement.appendChild(statusIndicator);
 
-const messageButton = document.createElement("button");
-messageButton.textContent = "Message";
-messageButton.classList.add('message-button');
-messageButton.onclick = function() {
-startChat(friend.id, friend.username, friend.is_online);
-};
-friendElement.appendChild(messageButton);
+          const messageButton = document.createElement("button");
+          messageButton.textContent = "Message";
+          messageButton.classList.add('message-button');
+          messageButton.onclick = function() {
+            startChat(friend.id, friend.username, friend.is_online);
+          };
+          friendElement.appendChild(messageButton);
 
-friendsList.appendChild(friendElement);
-});
-} else {
-friendsList.innerHTML = '<div class="no-friends">No friends yet</div>';
-}
-})
-.catch(error => console.error("Error fetching friends:", error));
+          friendsList.appendChild(friendElement);
+        });
+      } else {
+        friendsList.innerHTML = '<div class="no-friends">No friends yet</div>';
+      }
+    })
+    .catch(error => console.error("Error fetching friends:", error));
 }
 
 function startChat(friendId, friendUsername, isOnline = false) {
-console.log("Starting chat with friend ID:", friendId);
-document.getElementById("contacts-section").style.display = "none";
-document.getElementById("start-messaging").style.display = "none";
-document.getElementById("chat-box").style.display = "flex";
-
-if (friendUsername) {
-  const usernameElement = document.querySelector(".chat-header .center h2");
-  usernameElement.textContent = friendUsername;
-  usernameElement.classList.add('active-chat-user');
+  console.log("Starting chat with friend ID:", friendId);
   
-  updateOnlineStatus(isOnline, friendId);
-  document.getElementById('online-status').style.display = 'flex';
-} else {
-  document.querySelector(".chat-header .center h2").textContent = '';
-  document.getElementById('online-status').style.display = 'none';
-}
+  // Close any existing connection
+  if (chatSocket) {
+    chatSocket.close();
+  }
+  
+  // Create a new WebSocket connection
+  chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + friendUsername + '/');
+  
+  // Set up WebSocket event handlers
+  chatSocket.onopen = function(e) {
+    console.log("WebSocket connection established with", friendUsername);
+  };
+  
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const messagesContainer = document.querySelector(".messages-container");
+    const messageElement = document.createElement("div");
+    messageElement.className = "message-wrapper";
 
-const chatBox = document.getElementById("chat-box");
-const messagesContainer = document.querySelector(".messages-container");
-messagesContainer.innerHTML = '';
+    const messageContent = document.createElement("div");
+    messageContent.style.padding = "10px 15px";
+    messageContent.style.borderRadius = "18px";
+    messageContent.style.maxWidth = "70%";
+    messageContent.style.wordBreak = "break-word";
+    messageContent.style.position = "relative";
 
-document.getElementById("chat-message-input").focus();
+    messageContent.textContent = data.message;
+
+    const isCurrentUser = data.sender === "{{ request.user.username }}";
+    if (isCurrentUser) {
+      messageElement.className += " own-message";
+      messageContent.style.backgroundColor = "#2c7be5";
+      messageContent.style.color = "white";
+      messageContent.style.borderTopRightRadius = "4px";
+      messageContent.dataset.sent = "true";
+    } else {
+      messageContent.style.backgroundColor = "#f0f2f5";
+      messageContent.style.color = "#050505";
+      messageContent.style.borderTopLeftRadius = "4px";
+      messageContent.dataset.seen = "false";
+    }
+
+    const timestamp = document.createElement("div");
+    timestamp.className = "message-timestamp";
+    timestamp.textContent = data.timestamp || getCurrentTimeFormatted();
+    messageContent.appendChild(timestamp);
+
+    if (isCurrentUser) {
+      const readReceipt = document.createElement("div");
+      readReceipt.className = "read-receipt";
+      readReceipt.innerHTML = "✓";
+      messageContent.appendChild(readReceipt);
+    }
+
+    messageElement.appendChild(messageContent);
+    messagesContainer.appendChild(messageElement);
+
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    if (!isCurrentUser) {
+      setTimeout(() => {
+        messageContent.dataset.seen = "true";
+        chatSocket.send(JSON.stringify({
+          "action": "mark_seen",
+          "message_id": data.id
+        }));
+      }, 2000);
+    } else {
+      setTimeout(() => {
+        const readReceipts = document.querySelectorAll(".read-receipt");
+        readReceipts.forEach(receipt => {
+          receipt.innerHTML = "✓✓";
+        });
+      }, 3000);
+    }
+  };
+  
+  chatSocket.onclose = function() {
+    console.error("WebSocket closed unexpectedly");
+  };
+  
+  // Update UI
+  document.getElementById("contacts-section").style.display = "none";
+  document.getElementById("start-messaging").style.display = "none";
+  document.getElementById("chat-box").style.display = "flex";
+
+  if (friendUsername) {
+    const usernameElement = document.querySelector(".chat-header .center h2");
+    usernameElement.textContent = friendUsername;
+    usernameElement.classList.add('active-chat-user');
+    
+    updateOnlineStatus(isOnline, friendId);
+    document.getElementById('online-status').style.display = 'flex';
+  } else {
+    document.querySelector(".chat-header .center h2").textContent = '';
+    document.getElementById('online-status').style.display = 'none';
+  }
+
+  const chatBox = document.getElementById("chat-box");
+  const messagesContainer = document.querySelector(".messages-container");
+  messagesContainer.innerHTML = '';
+
+  document.getElementById("chat-message-input").focus();
 }
 
 function fetchPendingRequests() {
-fetch('/pending_friend_requests/')
-.then(response => response.json())
-.then(data => {
-const pendingRequestsList = document.getElementById("pending-requests");
-pendingRequestsList.innerHTML = '';
-if (data.requests && data.requests.length > 0) {
-data.requests.forEach(request => {
-const requestElement = document.createElement("div");
-requestElement.textContent = `Friend request from ${request.sender_username}`;
-requestElement.classList.add('pending-request-item');
-requestElement.setAttribute('data-request-id', request.id);
+  fetch('/pending_friend_requests/')
+    .then(response => response.json())
+    .then(data => {
+      const pendingRequestsList = document.getElementById("pending-requests");
+      pendingRequestsList.innerHTML = '';
+      if (data.requests && data.requests.length > 0) {
+        data.requests.forEach(request => {
+          const requestElement = document.createElement("div");
+          requestElement.textContent = `Friend request from ${request.sender_username}`;
+          requestElement.classList.add('pending-request-item');
+          requestElement.setAttribute('data-request-id', request.id);
 
-const acceptButton = document.createElement("button");
-acceptButton.textContent = "Accept";
-acceptButton.classList.add('accept-button');
-acceptButton.onclick = function(e) {
-e.stopPropagation();
-acceptFriendRequest(request.id, request.sender_username);
-};
-requestElement.appendChild(acceptButton);
+          const acceptButton = document.createElement("button");
+          acceptButton.textContent = "Accept";
+          acceptButton.classList.add('accept-button');
+          acceptButton.onclick = function(e) {
+            e.stopPropagation();
+            acceptFriendRequest(request.id, request.sender_username);
+          };
+          requestElement.appendChild(acceptButton);
 
-const rejectButton = document.createElement("button");
-rejectButton.textContent = "Reject";
-rejectButton.classList.add('reject-button');
-rejectButton.onclick = function(e) {
-e.stopPropagation();
-rejectFriendRequest(request.id);
-};
-requestElement.appendChild(rejectButton);
+          const rejectButton = document.createElement("button");
+          rejectButton.textContent = "Reject";
+          rejectButton.classList.add('reject-button');
+          rejectButton.onclick = function(e) {
+            e.stopPropagation();
+            rejectFriendRequest(request.id);
+          };
+          requestElement.appendChild(rejectButton);
 
-pendingRequestsList.appendChild(requestElement);
-});
-} else {
-pendingRequestsList.innerHTML = '<div class="no-requests">No pending requests</div>';
-}
-})
-.catch(error => console.error("Error fetching pending requests:", error));
+          pendingRequestsList.appendChild(requestElement);
+        });
+      } else {
+        pendingRequestsList.innerHTML = '<div class="no-requests">No pending requests</div>';
+      }
+    })
+    .catch(error => console.error("Error fetching pending requests:", error));
 }
 
 function sendFriendRequest(userId) {
-fetch(`/send_friend_request/${userId}/`, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRFToken': getCSRFToken()
-},
-credentials: 'same-origin'
-})
-.then(response => response.json())
-.then(data => {
-if (data.error) {
-alert(data.error);
-} else {
-alert(data.message);
-const buttons = document.querySelectorAll(`.contact-item button[onclick="sendFriendRequest(${userId})"]`);
-buttons.forEach(button => {
-button.disabled = true;
-button.textContent = "Request Sent";
-});
-fetchContacts();
-}
-})
-.catch(error => {
-console.error("Error sending friend request:", error);
-alert("Failed to send friend request");
-});
+  fetch(`/send_friend_request/${userId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    },
+    credentials: 'same-origin'
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(data.message);
+        const buttons = document.querySelectorAll(`.contact-item button[onclick="sendFriendRequest(${userId})"]`);
+        buttons.forEach(button => {
+          button.disabled = true;
+          button.textContent = "Request Sent";
+        });
+        fetchContacts();
+      }
+    })
+    .catch(error => {
+      console.error("Error sending friend request:", error);
+      alert("Failed to send friend request");
+    });
 }
 
 function getCSRFToken() {
-let csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
-if (csrfToken) {
-return csrfToken.value;
-}
-console.error("CSRF token input field not found!");
-return null;
+  let csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  if (csrfToken) {
+    return csrfToken.value;
+  }
+  console.error("CSRF token input field not found!");
+  return null;
 }
 
 function acceptFriendRequest(requestId, senderUsername) {
-console.log("Accepting request ID:", requestId);
-const token = getCSRFToken();
-if (!token) {
-alert("CSRF token missing. Cannot proceed.");
-return;
-}
+  console.log("Accepting request ID:", requestId);
+  const token = getCSRFToken();
+  if (!token) {
+    alert("CSRF token missing. Cannot proceed.");
+    return;
+  }
 
-fetch(`/accept_friend_request/${requestId}/`, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRFToken': token
-},
-credentials: 'same-origin'
-})
-.then(response => {
-if (!response.ok) {
-return response.json().then(errData => {
-throw new Error(errData.error || `Server responded with status: ${response.status}`);
-}).catch(() => {
-throw new Error(`Network response was not ok. Status: ${response.status}`);
-});
-}
-return response.json();
-})
-.then(data => {
-console.log("Accept response data:", data);
-if (data.success) {
-const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
-if (requestElement) {
-const container = document.getElementById("pending-requests");
-requestElement.remove();
-console.log("Removed pending request item:", requestId);
+  fetch(`/accept_friend_request/${requestId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': token
+    },
+    credentials: 'same-origin'
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errData => {
+          throw new Error(errData.error || `Server responded with status: ${response.status}`);
+        }).catch(() => {
+          throw new Error(`Network response was not ok. Status: ${response.status}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Accept response data:", data);
+      if (data.success) {
+        const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
+        if (requestElement) {
+          const container = document.getElementById("pending-requests");
+          requestElement.remove();
+          console.log("Removed pending request item:", requestId);
 
-if (container.children.length === 0) {
-container.innerHTML = '<div class="no-requests">No pending requests</div>';
-}
+          if (container.children.length === 0) {
+            container.innerHTML = '<div class="no-requests">No pending requests</div>';
+          }
 
-fetchFriends();
-} else {
-console.warn("Could not find request element to remove for ID:", requestId);
-fetchFriends();
-alert("Friend accepted, but the list item could not be removed automatically.");
-}
-} else {
-alert(data.error || "Failed to accept friend request.");
-}
-})
-.catch(error => {
-console.error("Error accepting friend request:", error);
-alert("Failed to accept friend request. Please try again.");
-});
+          fetchFriends();
+        } else {
+          console.warn("Could not find request element to remove for ID:", requestId);
+          fetchFriends();
+          alert("Friend accepted, but the list item could not be removed automatically.");
+        }
+      } else {
+        alert(data.error || "Failed to accept friend request.");
+      }
+    })
+    .catch(error => {
+      console.error("Error accepting friend request:", error);
+      alert("Failed to accept friend request. Please try again.");
+    });
 }
 
 function rejectFriendRequest(requestId) {
-console.log("Rejecting request ID:", requestId);
-const token = getCSRFToken();
-if (!token) {
-alert("CSRF token missing. Cannot proceed.");
-return;
+  console.log("Rejecting request ID:", requestId);
+  const token = getCSRFToken();
+  if (!token) {
+    alert("CSRF token missing. Cannot proceed.");
+    return;
+  }
+
+  fetch(`/reject_friend_request/${requestId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': token
+    },
+    credentials: 'same-origin'
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errData => {
+          throw new Error(errData.error || `Server responded with status: ${response.status}`);
+        }).catch(() => {
+          throw new Error(`Network response was not ok. Status: ${response.status}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Reject response data:", data);
+      if (data.success) {
+        const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
+        if (requestElement) {
+          const container = document.getElementById("pending-requests");
+          requestElement.remove();
+          console.log("Removed pending request item:", requestId);
+
+          if (container.children.length === 0) {
+            container.innerHTML = '<div class="no-requests">No pending requests</div>';
+          }
+        } else {
+          console.warn("Could not find request element to remove for ID:", requestId);
+          alert("Friend request rejected, but the list item could not be removed automatically.");
+        }
+      } else {
+        alert(data.error || "Failed to reject friend request.");
+      }
+    })
+    .catch(error => {
+      console.error("Error rejecting friend request:", error);
+      alert("Failed to reject friend request. Please try again.");
+    });
 }
-
-fetch(`/reject_friend_request/${requestId}/`, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRFToken': token
-},
-credentials: 'same-origin'
-})
-.then(response => {
-if (!response.ok) {
-return response.json().then(errData => {
-throw new Error(errData.error || `Server responded with status: ${response.status}`);
-}).catch(() => {
-throw new Error(`Network response was not ok. Status: ${response.status}`);
-});
-}
-return response.json();
-})
-.then(data => {
-console.log("Reject response data:", data);
-if (data.success) {
-const requestElement = document.querySelector(`#pending-requests div[data-request-id="${requestId}"]`);
-if (requestElement) {
-const container = document.getElementById("pending-requests");
-requestElement.remove();
-console.log("Removed pending request item:", requestId);
-
-if (container.children.length === 0) {
-container.innerHTML = '<div class="no-requests">No pending requests</div>';
-}
-} else {
-console.warn("Could not find request element to remove for ID:", requestId);
-alert("Friend request rejected, but the list item could not be removed automatically.");
-}
-} else {
-alert(data.error || "Failed to reject friend request.");
-}
-})
-.catch(error => {
-console.error("Error rejecting friend request:", error);
-alert("Failed to reject friend request. Please try again.");
-});
-}
-
-const chatSocket = new WebSocket(`ws://${window.location.host}/ws/messaging/`);
-
-chatSocket.onmessage = function(e) {
-const data = JSON.parse(e.data);
-const messagesContainer = document.querySelector(".messages-container");
-const messageElement = document.createElement("div");
-messageElement.className = "message-wrapper";
-
-const messageContent = document.createElement("div");
-messageContent.style.padding = "10px 15px";
-messageContent.style.borderRadius = "18px";
-messageContent.style.maxWidth = "70%";
-messageContent.style.wordBreak = "break-word";
-messageContent.style.position = "relative";
-
-messageContent.textContent = data.message;
-
-const isCurrentUser = data.sender === "{{ request.user.username }}";
-if (isCurrentUser) {
-messageElement.className += " own-message";
-messageContent.style.backgroundColor = "#2c7be5";
-messageContent.style.color = "white";
-messageContent.style.borderTopRightRadius = "4px";
-messageContent.dataset.sent = "true";
-} else {
-messageContent.style.backgroundColor = "#f0f2f5";
-messageContent.style.color = "#050505";
-messageContent.style.borderTopLeftRadius = "4px";
-messageContent.dataset.seen = "false";
-}
-
-const timestamp = document.createElement("div");
-timestamp.className = "message-timestamp";
-timestamp.textContent = data.timestamp || getCurrentTimeFormatted();
-messageContent.appendChild(timestamp);
-
-if (isCurrentUser) {
-const readReceipt = document.createElement("div");
-readReceipt.className = "read-receipt";
-readReceipt.innerHTML = "✓";
-messageContent.appendChild(readReceipt);
-}
-
-messageElement.appendChild(messageContent);
-messagesContainer.appendChild(messageElement);
-
-messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-if (!isCurrentUser) {
-setTimeout(() => {
-messageContent.dataset.seen = "true";
-chatSocket.send(JSON.stringify({
-"action": "mark_seen",
-"message_id": data.id
-}));
-}, 2000);
-} else {
-setTimeout(() => {
-const readReceipts = document.querySelectorAll(".read-receipt");
-readReceipts.forEach(receipt => {
-receipt.innerHTML = "✓✓";
-});
-}, 3000);
-}
-};
-
-chatSocket.onclose = function() {
-console.error("WebSocket closed unexpectedly");
-};
 
 function sendMessage() {
-const messageInput = document.getElementById("chat-message-input");
-const message = messageInput.value.trim();
-if (message !== "") {
-chatSocket.send(JSON.stringify({
-"message": message,
-"timestamp": getCurrentTimeFormatted()
-}));
-messageInput.value = "";
-}
+  const messageInput = document.getElementById("chat-message-input");
+  const message = messageInput.value.trim();
+  if (message !== "" && chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+    chatSocket.send(JSON.stringify({
+      "message": message,
+      "timestamp": getCurrentTimeFormatted()
+    }));
+    messageInput.value = "";
+  } else if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+    console.error("WebSocket not connected");
+    alert("You are not connected. Please try again later.");
+  }
 }
 
 document.getElementById("send-button").onclick = sendMessage;
 
 document.getElementById("chat-message-input").addEventListener("keypress", function(event) {
-if (event.key === "Enter" && !event.shiftKey) {
-event.preventDefault();
-sendMessage();
-}
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
 });
 
 document.getElementById('search-form').addEventListener('submit', function(event) {
-event.preventDefault();
-fetchContacts();
+  event.preventDefault();
+  fetchContacts();
 });
-  document.getElementById('search-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    fetchContacts();
-  });
 
-  function deleteAccount() {
+function deleteAccount() {
   if (confirm("Are you sure you want to delete your account? This action is permanent.")) {
     fetch('/delete_account/', {
       method: 'POST',
