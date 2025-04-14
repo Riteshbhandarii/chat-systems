@@ -4,10 +4,18 @@ from django.contrib.auth.models import AnonymousUser
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = "global_chat"  # Single room for all users
+        self.user = self.scope["user"]
+        self.other_username = self.scope["url_route"]["kwargs"].get("username")
+
+        # Only authenticated users can use private chat
+        if isinstance(self.user, AnonymousUser) or not self.other_username:
+            await self.close()
+            return
+
+        # Create a unique room name based on both usernames
+        self.room_name = "_".join(sorted([self.user.username, self.other_username]))
         self.room_group_name = f"chat_{self.room_name}"
 
-        # Join group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -15,7 +23,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
@@ -27,20 +34,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message = data.get("message", "").strip()
 
             if not message:
-                return  # Ignore empty messages
+                return
 
-            # Get sender's username (fallback to "Anonymous" if not logged in)
-            user = self.scope["user"]
-            username = user.username if not isinstance(user, AnonymousUser) else "Anonymous"
-
-            # Broadcast to group
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     "type": "chat_message",
                     "message": message,
-                    "sender": username,  # Include sender
-                    "is_authenticated": not isinstance(user, AnonymousUser),
+                    "sender": self.user.username,
                 }
             )
 
@@ -50,9 +51,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"Error in receive: {e}")
 
     async def chat_message(self, event):
-        # Send message to WebSocket (frontend)
         await self.send(text_data=json.dumps({
             "message": event["message"],
             "sender": event["sender"],
-            "is_authenticated": event["is_authenticated"],
         }))
