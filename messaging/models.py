@@ -46,21 +46,28 @@ class FriendRequest(models.Model):
 
 class Groupchat(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    members = models.ManyToManyField(User, related_name="group_chat")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_groups')
+    members = models.ManyToManyField(User, related_name='group_chats')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
-class Groupmchatmessage(models.Model):  # Original spelling preserved
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    group_chat = models.ForeignKey(Groupchat, on_delete=models.CASCADE)
+    class Meta:
+        ordering = ['-created_at']
+
+class Groupmchatmessage(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_messages')
+    group_chat = models.ForeignKey(Groupchat, on_delete=models.CASCADE, related_name='messages')
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    read_by = models.ManyToManyField(User, related_name="read_group_messages", blank=True)
+    read_by = models.ManyToManyField(User, related_name='read_group_messages', blank=True)
 
     def __str__(self):
-        return f"Message in {self.group_chat.name} by {self.sender.username}: {self.content}"
+        return f"{self.sender.username} in {self.group_chat.name}: {self.content[:50]}"
 
+    class Meta:
+        ordering = ['timestamp']
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE, null=True, blank=True)
