@@ -170,12 +170,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
 
-from channels.generic.websocket import AsyncWebsocketConsumer
-import json
-import datetime
-from asgiref.sync import sync_to_async
-from .models import Groupchat, Groupmchatmessage
-
 class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]

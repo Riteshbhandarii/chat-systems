@@ -34,11 +34,13 @@
 <h3>Your Groups</h3>
 <button id="create-group-button" onclick="showCreateGroupForm()">Create Group</button>
 <div id="create-group-form" style="display: none; margin-top: 10px;">
-  <input type="text" id="group-name-input" placeholder="Enter group name...">
-  <h4>Select Friends</h4>
-  <div id="group-friends-selection"></div>
-  <button onclick="createGroup()">Create</button>
-  <button onclick="cancelCreateGroup()">Cancel</button>
+  <form id="create-new-group-form">
+    <input type="text" id="group-name-input" placeholder="Enter group name...">
+    <h4>Select Friends</h4>
+    <div id="group-friends-selection"></div>
+    <button type="button" onclick="createGroup()">Create</button>
+    <button type="button" onclick="cancelCreateGroup()">Cancel</button>
+  </form>
 </div>
 <div id="groups-list"></div>
 
@@ -62,10 +64,10 @@ style="flex: 1; display: flex; flex-direction: column; justify-content: center; 
 <button id="send-button">Send</button>
 </div>
 </div>
-</div>
-</div>
+
 
 <script>
+// Global variable to hold the WebSocket connection
 // Global variable to hold the WebSocket connection
 let chatSocket = null;
 let selectedGroupFriends = new Set();
@@ -97,10 +99,10 @@ function updateOnlineStatus(isOnline, userId = null) {
   const statusDot = document.querySelector('.status-dot');
   const statusText = document.querySelector('.status-text');
   const statusContainer = document.getElementById('online-status');
-  
+
   if (statusContainer) {
     statusContainer.style.display = 'flex';
-    
+
     if (statusDot && statusText) {
       if (isOnline) {
         statusDot.classList.remove('offline');
@@ -114,6 +116,7 @@ function updateOnlineStatus(isOnline, userId = null) {
     }
   }
 }
+
 
 function fetchContacts() {
   const query = document.getElementById('search-query').value;
@@ -216,16 +219,25 @@ function showCreateGroupForm() {
 
 function cancelCreateGroup() {
   document.getElementById('create-group-form').style.display = 'none';
-  document.getElementById('group-name-input').value = '';
+  const groupNameInput = document.getElementById('group-name-input');
+  if (groupNameInput) {
+    groupNameInput.value = '';
+  }
   selectedGroupFriends.clear();
 }
 
 function createGroup() {
-  const groupName = document.getElementById('group-name-input').value.trim();
+  const groupNameInput = document.getElementById('group-name-input');
+  const groupName = groupNameInput.value.trim();
+  
+  console.log("Group Name:", groupName);
+  console.log("Selected Friends:", selectedGroupFriends);
+
   if (!groupName) {
     alert("Please enter a group name");
     return;
   }
+  
   if (selectedGroupFriends.size === 0) {
     alert("Please select at least one friend");
     return;
@@ -289,17 +301,17 @@ function fetchGroups() {
 
 function startChat(friendId, friendUsername, isOnline = false) {
   console.log("Starting chat with friend ID:", friendId);
-  
+
   if (chatSocket) {
     chatSocket.close();
   }
-  
+
   chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + friendUsername + '/');
-  
+
   chatSocket.onopen = function(e) {
     console.log("WebSocket connection established with", friendUsername);
   };
-  
+
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     const messagesContainer = document.querySelector(".messages-container");
@@ -367,11 +379,11 @@ function startChat(friendId, friendUsername, isOnline = false) {
       }
     }
   };
-  
+
   chatSocket.onclose = function() {
     console.error("WebSocket closed unexpectedly");
   };
-  
+
   document.getElementById("contacts-section").style.display = "none";
   document.getElementById("start-messaging").style.display = "none";
   document.getElementById("chat-box").style.display = "flex";
@@ -380,7 +392,7 @@ function startChat(friendId, friendUsername, isOnline = false) {
     const usernameElement = document.querySelector(".chat-header .center h2");
     usernameElement.textContent = friendUsername;
     usernameElement.classList.add('active-chat-user');
-    
+
     updateOnlineStatus(isOnline, friendId);
     document.getElementById('online-status').style.display = 'flex';
   } else {
@@ -396,17 +408,17 @@ function startChat(friendId, friendUsername, isOnline = false) {
 
 function startGroupChat(groupId, groupName) {
   console.log("Starting group chat with group ID:", groupId);
-  
+
   if (chatSocket) {
     chatSocket.close();
   }
-  
+
   chatSocket = new WebSocket('ws://' + window.location.host + '/ws/group_chat/' + groupId + '/');
-  
+
   chatSocket.onopen = function(e) {
     console.log("WebSocket connection established for group", groupName);
   };
-  
+
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     const messagesContainer = document.querySelector(".messages-container");
@@ -444,11 +456,11 @@ function startGroupChat(groupId, groupName) {
     messagesContainer.appendChild(messageElement);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   };
-  
+
   chatSocket.onclose = function() {
     console.error("Group WebSocket closed unexpectedly");
   };
-  
+
   document.getElementById("contacts-section").style.display = "none";
   document.getElementById("start-messaging").style.display = "none";
   document.getElementById("chat-box").style.display = "flex";

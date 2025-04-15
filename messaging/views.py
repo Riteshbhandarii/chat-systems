@@ -9,6 +9,7 @@ from .forms import RegisterForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
+import json
 
 # Home view - redirects to chat if logged in, else to login
 def home_view(request):
@@ -16,40 +17,37 @@ def home_view(request):
         return redirect('chat_room', room_name='general')  # Redirect to chat if authenticated
     return render(request, 'messaging/home.html')  # Render home.html for unauthenticated users
 
-# Registration view
+
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('chat_room', room_name='general')
+        # Maybe redirect to a dashboard or home page instead of a specific chat room?
+        return redirect('home') # Or wherever logged-in users should go
 
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            # Create user object but don’t save to DB yet
             user = form.save(commit=False)
-
-            # Hash the password
             raw_password = form.cleaned_data.get('password')
             user.set_password(raw_password)
-
-            user.is_active = True  # just to be safe
+            user.is_active = True
             user.save()
+            login(request, user) # Log the user in
+            messages.success(request, 'Registration successful! You are now logged in.')
+            # Redirect to a page users should see after registering AND logging in
+            return redirect('home') # Or 'chat_room' if that's intended
+        else:
+            # Form is invalid, add error messages (optional, as errors are usually in form.errors)
+            # You can rely on the template to display form.errors
+            messages.error(request, 'Please correct the errors below.')
+            # The code will now fall through to the render() call below,
+            # passing the *invalid* form instance to the template.
+    else: # This is a GET request
+        form = RegisterForm() # Create an empty form instance
 
-            # Log the user in after registration
-            login(request, user)
-
-            messages.success(request, 'Registration successful!')
-            return redirect('chat_room', room_name='general')
-        
-        # Show form errors
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(request, f"{field}: {error}")
-    else:
-        form = RegisterForm()
-
-    return render(request, 'messaging/register.html', {'form': form})
-
-# Login view
+    # Render the template for GET requests OR for invalid POST requests
+    # Make sure 'your_app_name/register_template.html' matches the actual path to your template
+    context = {'form': form}
+    return render(request, 'messaging/register.html', context) # USE YOUR ACTUAL TEMPLATE PATH
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('chat_room', room_name='general')
@@ -193,21 +191,49 @@ def view_friends(request):
     return render(request, 'messaging/chat_room.html', {'friends': friends})
 
 # Group chat functionality
+
 @login_required
 def create_group_chat(request):
+    print("create_group_chat view called")
     if request.method == 'POST':
-        group_name = request.POST.get('group_name')
-        if not group_name:
-            return JsonResponse({"error": "Group name is required."})
+        print("Request method is POST")
+        try:
+            print("Attempting to parse request body")
+            body_before_read = request.body  # Try to capture the body before reading
+            data = json.loads(request.body.decode('utf-8'))
+            print("Request body parsed successfully")
+            group_name = data.get('name')
+            member_ids = data.get('members', [])
 
-        group_chat = Groupchat.objects.create(name=group_name)
-        group_chat.members.add(request.user)
-        group_chat.save()
+            if not group_name:
+                print("Error: Group name is missing")
+                return JsonResponse({"error": "Group name is required.", "success": False}, status=400)
 
-        return redirect('chat_room', room_name=group_chat.name)
+            group_chat = Groupchat.objects.create(name=group_name, admin=request.user)
+            group_chat.members.add(request.user)  
 
-    return render(request, 'messaging/chat_room.html')
+            for member_id in member_ids:
+                try:
+                    member = User.objects.get(id=member_id)
+                    group_chat.members.add(member)
+                except User.DoesNotExist:
+                    print(f"Warning: User with ID {member_id} not found.")
 
+            group_chat.save()
+            print(f"Group '{group_name}' created successfully with ID: {group_chat.id}")
+            return JsonResponse({"success": True, "message": "Group created successfully", "group_id": group_chat.id}, status=201)
+
+        except json.JSONDecodeError as e:
+            print(f"JSONDecodeError: {e}, Request body: {body_before_read.decode('utf-8') if 'body_before_read' in locals() else 'Could not read body'}")
+            return JsonResponse({"error": "Invalid JSON data in request body.", "success": False}, status=400)
+        except Exception as e:
+            print(f"Error creating group: {e}")
+            return JsonResponse({"error": "Failed to create group.", "success": False}, status=500)
+
+    else:
+        print("Request method is not POST")
+    return JsonResponse({"error": "Invalid request method", "success": False}, status=405)
+   
 @login_required
 def send_group_message(request, group_id):
     group_chat = get_object_or_404(Groupchat, id=group_id)
@@ -231,13 +257,20 @@ def send_group_message(request, group_id):
     return render(request, 'messaging/chat_room.html', {'group_chat': group_chat})
 
 @login_required
-def list_group_chats(request):
-    group_chats = Groupchat.objects.filter(members=request.user)
-    
-    return render(request, 'messaging/chat_room.html', {
-        'group_chats': group_chats
-    })
-
+def get_groups(request):
+    print("get_groups view called")
+    try:
+        group_chats = Groupchat.objects.filter(members=request.user)
+        print(f"Number of groups found for user {request.user.username}: {len(group_chats)}")
+        groups_data = [{
+            "id": group.id,
+            "name": group.name
+        } for group in group_chats]
+        print(f"Groups data: {groups_data}")
+        return JsonResponse({"groups": groups_data})
+    except Exception as e:
+        print(f"Error in get_groups view: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
 # views.py
 @login_required
 def add_member_to_group(request, group_id):
