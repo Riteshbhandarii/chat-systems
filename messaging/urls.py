@@ -23,4 +23,11 @@ urlpatterns = [
     path('accounts/login/', views.login_view, name='login'),
     path('delete_account/', views.delete_account, name='delete_account'),
 
+    # group urls
+     path('create_group/', views.create_group_chat, name='create_group'),
+    path('group/<int:group_id>/send/', views.send_group_message, name='send_group_message'),
+    path('groups/', views.list_group_chats, name='list_group_chats'),
+    path('group/<int:group_id>/add_member/', views.add_member_to_group, name='add_member_to_group'),
+    path('group/<int:group_id>/', views.group_chat_room, name='chat_room'),
+   
 ]
