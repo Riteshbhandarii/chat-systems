@@ -30,5 +30,8 @@ urlpatterns = [
     path('groups/', views.get_groups, name='list_group_chats'),
     path('group/<int:group_id>/add_member/', views.add_member_to_group, name='add_member_to_group'),
     path('group/<int:group_id>/', views.group_chat_room, name='chat_room'),
+    
+    # loading user info
+    path('get_user_info/', views.user_info, name='get_user_info'),
    
 ]

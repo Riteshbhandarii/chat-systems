@@ -4,12 +4,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from .models import FriendRequest, Friend, Groupchat, Groupmchatmessage
+from .models import FriendRequest, Friend, Groupchat, Groupmchatmessage, Message 
 from .forms import RegisterForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
+from django.http import JsonResponse, HttpResponse
 import json
+import os
 
 # Home view - redirects to chat if logged in, else to login
 def home_view(request):
@@ -366,3 +368,74 @@ def delete_account(request):
 
     # If the method is GET, you can directly redirect to home without any confirmation.
     return redirect('home')
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Friend, Message, Groupchat, Groupmchatmessage
+from django.utils import timezone
+
+@login_required
+def user_info(request):
+    if request.method == 'GET':
+        user = request.user
+
+        # Format data to match the expected frontend structure
+        user_data = {
+            'personal_info': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+            },
+            'messages': {
+                'sent': [],
+                'received': [],
+                'group': []
+            },
+            'groups': [],
+            'friends': []
+        }
+
+        # Fetch friends
+        friends = user.friend_of.all()
+        user_data['friends'] = [{'id': friend.user.id, 'username': friend.user.username} for friend in friends]
+
+        # Fetch sent messages
+        sent_messages = user.message_set.all().order_by('-timestamp')[:50]
+        user_data['messages']['sent'] = [
+            {
+                'id': msg.id,
+                'receiver': msg.receiver.username if msg.receiver else None,
+                'content': msg.content,
+                'timestamp': msg.timestamp.isoformat()
+            } for msg in sent_messages
+        ]
+
+        # Fetch received messages
+        received_messages = user.received_messages.all().order_by('-timestamp')[:50]
+        user_data['messages']['received'] = [
+            {
+                'id': msg.id,
+                'sender': msg.sender.username,
+                'content': msg.content,
+                'timestamp': msg.timestamp.isoformat()
+            } for msg in received_messages
+        ]
+
+        # Fetch group messages
+        user_groups = Groupchat.objects.filter(members=user)
+        for group in user_groups:
+            group_messages = Groupmchatmessage.objects.filter(group_chat=group).order_by('-timestamp')[:20]
+            user_data['messages']['group'].extend([
+                {
+                    'id': msg.id,
+                    'group_name': group.name,
+                    'sender': msg.sender.username,
+                    'content': msg.content,
+                    'timestamp': msg.timestamp.isoformat()
+                } for msg in group_messages
+            ])
+        user_data['groups'] = [{'id': group.id, 'name': group.name} for group in user_groups]
+
+        return JsonResponse(user_data)
+
+    return JsonResponse({"error": "Method not allowed."}, status=405)

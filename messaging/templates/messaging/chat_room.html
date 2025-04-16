@@ -12,6 +12,10 @@
 </div>
 </div>
 <div class="right">
+  <button id="loadUserInfoBtn">Load My Info</button>
+
+<div id="userInfoDisplay" style="margin-top: 10px;"></div>
+
   <button id="delete-account-button" onclick="deleteAccount()">
     Delete Account
   </button>
@@ -67,6 +71,88 @@ style="flex: 1; display: flex; flex-direction: column; justify-content: center; 
 
 
 <script>
+ // Replace the existing load user info button event listener with this:
+ document.getElementById('loadUserInfoBtn').addEventListener('click', function() {
+    // Fetch user data and immediately download it without displaying on page
+    fetch('/get_user_info/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not OK");
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Download the data immediately without displaying anything
+            downloadUserData(data);
+        })
+        .catch(error => {
+            console.error('Error fetching user info:', error);
+            // Minimal error display if needed
+            const displayDiv = document.getElementById('userInfoDisplay');
+            displayDiv.innerHTML = `<p class="error">Error downloading data</p>`;
+            // Clear the error message after 3 seconds
+            setTimeout(() => {
+                displayDiv.innerHTML = '';
+            }, 3000);
+        });
+});
+
+// Function to download user data as JSON file
+function downloadUserData(userData) {
+    // Create a formatted timestamp for the filename
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, '-');
+    
+    // Convert the data to a pretty-printed JSON string
+    const dataStr = JSON.stringify(userData, null, 2);
+    
+    // Create a Blob with the data
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    
+    // Create a link element to trigger the download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = `user_data_${userData.username}_${timestamp}.json`;
+    
+    // Append the link to the body, click it, and remove it
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Clean up by revoking the object URL
+    URL.revokeObjectURL(downloadLink.href);
+}
+
+// Function to download user data as JSON file
+function downloadUserData(userData) {
+    // Create a formatted timestamp for the filename
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, '-');
+    
+    // Convert the data to a pretty-printed JSON string
+    const dataStr = JSON.stringify(userData, null, 2);
+    
+    // Create a Blob with the data
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    
+    // Create a link element to trigger the download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = `user_data_${userData.personal_info.username}_${timestamp}.json`;
+    
+    // Append the link to the body, click it, and remove it
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Clean up by revoking the object URL
+    URL.revokeObjectURL(downloadLink.href);
+    
+    // Display success message
+    const displayDiv = document.getElementById('userInfoDisplay');
+    const currentContent = displayDiv.innerHTML;
+    displayDiv.innerHTML = currentContent;
+}
 // Global variable to hold the WebSocket connection
 // Global variable to hold the WebSocket connection
 let chatSocket = null;
