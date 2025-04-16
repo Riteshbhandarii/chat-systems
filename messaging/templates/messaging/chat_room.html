@@ -853,7 +853,8 @@ document.getElementById('search-form').addEventListener('submit', function(event
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    width: 210px;
+    /* Adjusted width to fit buttons more closely */
+    width: 190px;
     padding: 15px;
   }
   
@@ -901,7 +902,6 @@ document.getElementById('search-form').addEventListener('submit', function(event
     margin-bottom: 5px;
   }
   
-  /* Modified to remove specific styling for logout, create group, and close contacts */
   #create-group-button, #close-contacts {
     background-color: #000000;
     color: white;
@@ -1185,6 +1185,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #ccc;
+    cursor: pointer;
   }
   
   .message-button {
@@ -1243,3 +1244,4 @@ document.getElementById('search-form').addEventListener('submit', function(event
   }
   </style>
   {% endblock %}
+
