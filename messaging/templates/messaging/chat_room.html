@@ -1,78 +1,79 @@
 {% extends 'messaging/base.html' %}
 {% block content %}
 <div class="chat-container">
-<div class="chat-header">
-<div class="left">
-</div>
-<div class="center">
-<h2 class="chat-username"></h2>
-<div id="online-status" class="online-status-indicator" style="display: none;">
-  <div class="status-dot offline"></div>
-  <span class="status-text">Offline</span>
-</div>
-</div>
-<div class="right">
-  <button id="loadUserInfoBtn">Load My Info</button>
+  <div class="chat-header">
+    <div class="left"></div>
+    <div class="center">
+      <h2 class="chat-username"></h2>
+      <div id="online-status" class="online-status-indicator" style="display: none;">
+        <div class="status-dot offline"></div>
+        <span class="status-text">Offline</span>
+      </div>
+    </div>
+    <div class="right">
+      <button id="loadUserInfoBtn">Load My Info</button>
+      <div id="userInfoDisplay" style="margin-top: 10px;"></div>
+      <button id="delete-account-button" onclick="deleteAccount()">Delete Account</button>
+      <button id="contacts-button" onclick="toggleContacts()">Contacts</button>
+      <button id="logout-button" onclick="window.location.href = '/logout/'">Logout</button>
+    </div>
+  </div>
 
-<div id="userInfoDisplay" style="margin-top: 10px;"></div>
+  <div id="contacts-section" class="contacts-overlay" style="display: none;">
+    <div class="contacts-content">
+      <button id="close-contacts" onclick="toggleContacts()">Close</button>
+      <div class="contacts-left">
+        <h3>Search Users</h3>
+        <form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
+          {% csrf_token %}
+          <input type="text" id="search-query" name="q" placeholder="Search for users..." />
+          <button type="submit">Search</button>
+        </form>
+        <div id="contacts-list"></div>
 
-  <button id="delete-account-button" onclick="deleteAccount()">
-    Delete Account
-  </button>
-  <button id="contacts-button" onclick="toggleContacts()">Contacts</button>
-  <button id="logout-button" onclick="window.location.href = '/logout/'">
-    Logout
-  </button>
-</div>
-</div>
+        <h3>Create Group</h3>
+        <button id="create-group-button" onclick="showCreateGroupForm()">Create Group</button>
+        <div id="create-group-form" style="display: none; margin-top: 10px;">
+          <form id="create-new-group-form">
+            <input type="text" id="group-name-input" placeholder="Enter group name...">
+            <h4>Select Friends</h4>
+            <div id="group-friends-selection"></div>
+            <button type="button" onclick="createGroup()">Create</button>
+            <button type="button" onclick="cancelCreateGroup()">Cancel</button>
+          </form>
+        </div>
 
-<div id="contacts-section" class="contacts-section" style="display: none;">
-<h3>Your Contacts</h3>
-<form id="search-form" method="GET" action="{% url 'fetch_contacts' %}">
-{% csrf_token %}
-<input type="text" id="search-query" name="q" placeholder="Search for users..." />
-<button type="submit">Search</button>
-</form>
-<div id="contacts-list"></div>
+        <h3>Pending Friend Requests</h3>
+        <div id="pending-requests"></div>
+      </div>
+      <div class="contacts-right">
+        <h3>Your Friends</h3>
+        <div id="friends-list"></div>
+        <h3>Your Groups</h3>
+        <div id="groups-list"></div>
+      </div>
+    </div>
+  </div>
 
-<h3>Your Groups</h3>
-<button id="create-group-button" onclick="showCreateGroupForm()">Create Group</button>
-<div id="create-group-form" style="display: none; margin-top: 10px;">
-  <form id="create-new-group-form">
-    <input type="text" id="group-name-input" placeholder="Enter group name...">
-    <h4>Select Friends</h4>
-    <div id="group-friends-selection"></div>
-    <button type="button" onclick="createGroup()">Create</button>
-    <button type="button" onclick="cancelCreateGroup()">Cancel</button>
-  </form>
+  <div id="chat-section" style="height: 100%; display: flex; flex-direction: column;">
+    <div id="start-messaging" class="start-messaging"
+         style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+      <h3>Welcome!</h3>
+      <p>Your friends are waiting to hear from you!</p>
+    </div>
+    <div id="chat-box" class="chat-box" style="display: none;">
+      <div class="messages-container"></div>
+      <div id="message-input-section">
+        <input type="text" id="chat-message-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+  </div>
 </div>
-<div id="groups-list"></div>
-
-<h3>Your Friends</h3>
-<div id="friends-list"></div>
-<h3>Pending Friend Requests</h3>
-<div id="pending-requests"></div>
-</div>
-
-<div id="chat-section" style="height: 100%; display: flex; flex-direction: column;">
-<div id="start-messaging" class="start-messaging"
-style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-<h3>Welcome!</h3>
-<p>Your friends are waiting to hear from you!</p>
-</div>
-<div id="chat-box" class="chat-box" style="display: none;">
-<div class="messages-container">
-</div>
-<div id="message-input-section">
-<input type="text" id="chat-message-input" placeholder="Type your message...">
-<button id="send-button">Send</button>
-</div>
-</div>
-
 
 <script>
- // Replace the existing load user info button event listener with this:
- document.getElementById('loadUserInfoBtn').addEventListener('click', function() {
+// Replace the existing load user info button event listener with this:
+document.getElementById('loadUserInfoBtn').addEventListener('click', function() {
     // Fetch user data and immediately download it without displaying on page
     fetch('/get_user_info/')
         .then(response => {
@@ -121,39 +122,13 @@ function downloadUserData(userData) {
     
     // Clean up by revoking the object URL
     URL.revokeObjectURL(downloadLink.href);
-}
-
-// Function to download user data as JSON file
-function downloadUserData(userData) {
-    // Create a formatted timestamp for the filename
-    const now = new Date();
-    const timestamp = now.toISOString().replace(/[:.]/g, '-');
-    
-    // Convert the data to a pretty-printed JSON string
-    const dataStr = JSON.stringify(userData, null, 2);
-    
-    // Create a Blob with the data
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    
-    // Create a link element to trigger the download
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = `user_data_${userData.personal_info.username}_${timestamp}.json`;
-    
-    // Append the link to the body, click it, and remove it
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    
-    // Clean up by revoking the object URL
-    URL.revokeObjectURL(downloadLink.href);
     
     // Display success message
     const displayDiv = document.getElementById('userInfoDisplay');
     const currentContent = displayDiv.innerHTML;
     displayDiv.innerHTML = currentContent;
 }
-// Global variable to hold the WebSocket connection
+
 // Global variable to hold the WebSocket connection
 let chatSocket = null;
 let selectedGroupFriends = new Set();
@@ -161,7 +136,7 @@ let selectedGroupFriends = new Set();
 function toggleContacts() {
   const contactsSection = document.getElementById("contacts-section");
   if (contactsSection.style.display === "none") {
-    contactsSection.style.display = "block";
+    contactsSection.style.display = "flex";
     fetchContacts();
     fetchFriends();
     fetchGroups();
@@ -202,7 +177,6 @@ function updateOnlineStatus(isOnline, userId = null) {
     }
   }
 }
-
 
 function fetchContacts() {
   const query = document.getElementById('search-query').value;
@@ -260,6 +234,7 @@ function fetchFriends() {
           messageButton.classList.add('message-button');
           messageButton.onclick = function() {
             startChat(friend.id, friend.username, friend.is_online);
+            toggleContacts(); // Close overlay after selecting friend
           };
           friendElement.appendChild(messageButton);
 
@@ -316,9 +291,6 @@ function createGroup() {
   const groupNameInput = document.getElementById('group-name-input');
   const groupName = groupNameInput.value.trim();
   
-  console.log("Group Name:", groupName);
-  console.log("Selected Friends:", selectedGroupFriends);
-
   if (!groupName) {
     alert("Please enter a group name");
     return;
@@ -373,6 +345,7 @@ function fetchGroups() {
           messageButton.classList.add('message-button');
           messageButton.onclick = function() {
             startGroupChat(group.id, group.name);
+            toggleContacts(); // Close overlay after selecting group
           };
           groupElement.appendChild(messageButton);
 
@@ -797,334 +770,400 @@ function deleteAccount() {
   }
 }
 </script>
+
 <style>
 body {
-background-color: white;
+  background-color: white;
 }
 
 .chat-container {
-display: flex;
-flex-direction: column;
-height: 100vh;
-background-color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: white;
 }
 
 .chat-header {
-display: flex;
-align-items: center;
-background-color: white;
-color: black;
-padding: 15px;
-box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  background-color: white;
+  color: black;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .chat-header .left {
-width: 50px;
+  width: 50px;
 }
 
 .chat-header .center {
-flex-grow: 1;
-text-align: center;
+  flex-grow: 1;
+  text-align: center;
 }
 
 .chat-header .right {
-margin-left: auto;
-display: flex;
-align-items: center;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 
 .active-chat-user {
-display: inline-block;
-background: linear-gradient(to right, #4CAF50, #2196F3);
-color: white;
-padding: 6px 15px;
-border-radius: 20px;
-font-weight: bold;
-box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-margin-bottom: 5px;
+  display: inline-block;
+  background: linear-gradient(to right, #4CAF50, #2196F3);
+  color: white;
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  margin-bottom: 5px;
 }
 
-#logout-button, #contacts-button, #create-group-button {
-background-color: #000000;
-color: white;
-border: none;
-padding: 8px 15px;
-border-radius: 4px;
-cursor: pointer;
-margin-left: 5px;
+#logout-button, #contacts-button, #create-group-button, #close-contacts {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.contacts-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.contacts-content {
+  background-color: white;
+  width: 90%;
+  height: 90%;
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+#close-contacts {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.contacts-left, .contacts-right {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.contacts-left {
+  width: 40%;
+  border-right: 1px solid #ccc;
+}
+
+.contacts-right {
+  width: 60%;
 }
 
 #pending-requests {
-margin-top: 20px;
+  margin-top: 20px;
 }
 
 .pending-request-item {
-padding: 8px 0;
-border-bottom: 1px solid #ccc;
+  padding: 8px 0;
+  border-bottom: 1px solid #ccc;
 }
 
 .accept-button {
-background-color: #4CAF50;
-color: white;
-border: none;
-padding: 8px 15px;
-border-radius: 4px;
-cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .reject-button {
-background-color: #f44336;
-color: white;
-border: none;
-padding: 8px 15px;
-border-radius: 4px;
-cursor: pointer;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .add-button {
-background-color: #000000;
-color: white;
-border: none;
-padding: 8px 15px;
-border-radius: 4px;
-cursor: pointer;
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .add-button:hover {
-background-color: #444444;
+  background-color: #444444;
 }
 
-#contacts-list, #groups-list {
-list-style-type: none;
-padding: 0;
+#contacts-list, #groups-list, #friends-list {
+  list-style-type: none;
+  padding: 0;
 }
 
-.contact-item, .group-item {
-padding: 8px 0;
-border-bottom: 1px solid #ccc;
-cursor: pointer;
+.contact-item, .group-item, .friend-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
 }
 
-.contact-item:hover, .group-item:hover {
-background-color: #e8e8e8;
+.contact-item:hover, .group-item:hover, .friend-item:hover {
+  background-color: #e8e8e8;
 }
 
 .start-messaging {
-text-align: center;
-margin: auto;
-padding: 20px;
-color: #666;
+  text-align: center;
+  margin: auto;
+  padding: 20px;
+  color: #666;
 }
 
 .start-messaging h3 {
-font-size: 24px;
-margin-bottom: 10px;
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
 .start-messaging p {
-font-size: 16px;
+  font-size: 16px;
 }
 
 button:disabled {
-opacity: 0.6;
-cursor: not-allowed;
-background-color: #666 !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #666 !important;
 }
 
 #chat-box {
-display: flex;
-flex-direction: column;
-height: calc(100vh - 200px);
-width: 70%;
-margin: 20px auto;
-background-color: rgb(232, 232, 234);
-border-radius: 8px;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-position: relative;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 200px);
+  width: 70%;
+  margin: 20px auto;
+  background-color: rgb(232, 232, 234);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .messages-container {
-flex: 1;
-overflow-y: auto;
-padding: 15px;
-margin-bottom: 70px;
-scrollbar-width: thin;
-scrollbar-color: rgba(0,0,0,0.2) transparent;
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  margin-bottom: 70px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.2) transparent;
 }
 
 .messages-container::-webkit-scrollbar {
-width: 6px;
+  width: 6px;
 }
 
 .messages-container::-webkit-scrollbar-track {
-background: transparent;
+  background: transparent;
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-background-color: rgba(0,0,0,0.2);
-border-radius: 3px;
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
 }
 
 #message-input-section {
-position: absolute;
-bottom: 0;
-left: 0;
-right: 0;
-background: white;
-padding: 12px;
-border-bottom-left-radius: 8px;
-border-bottom-right-radius: 8px;
-display: flex;
-align-items: center;
-gap: 10px;
-box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
 }
 
 #chat-message-input {
-flex: 1;
-padding: 12px;
-font-size: 16px;
-border: 1px solid #ccc;
-border-radius: 20px;
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
 }
 
 #send-button {
-flex-shrink: 0;
-background-color: #707d8c;
-color: white;
-border: none;
-padding: 10px 20px;
-border-radius: 20px;
-cursor: pointer;
-transition: background-color 0.2s;
+  flex-shrink: 0;
+  background-color: #707d8c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 #send-button:hover {
-background-color: #45a049;
+  background-color: #45a049;
 }
 
 .message-wrapper {
-display: flex;
-margin-bottom: 16px;
-width: 100%;
+  display: flex;
+  margin-bottom: 16px;
+  width: 100%;
 }
 
 .message-wrapper.own-message {
-justify-content: flex-end;
+  justify-content: flex-end;
 }
 
 .message-timestamp {
-font-size: 10px;
-opacity: 0.7;
-margin-top: 4px;
-position: absolute;
-bottom: 2px;
-right: 8px;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-top: 4px;
+  position: absolute;
+  bottom: 2px;
+  right: 8px;
 }
 
 .read-receipt {
-font-size: 10px;
-opacity: 0.7;
-position: absolute;
-bottom: 2px;
-right: 50px;
+  font-size: 10px;
+  opacity: 0.7;
+  position: absolute;
+  bottom: 2px;
+  right: 50px;
 }
 
 .online-status-indicator {
-display: flex;
-align-items: center;
-justify-content: center;
-margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
 }
 
 .status-dot {
-width: 10px;
-height: 10px;
-border-radius: 50%;
-margin-right: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
 }
 
 .status-dot.online {
-background-color: #4CAF50;
+  background-color: #4CAF50;
 }
 
 .status-dot.offline {
-background-color: #ccc;
+  background-color: #ccc;
 }
 
 .status-text {
-font-size: 12px;
-color: #666;
+  font-size: 12px;
+  color: #666;
 }
 
 .friend-status-indicator {
-width: 10px;
-height: 10px;
-border-radius: 50%;
-display: inline-block;
-margin-left: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 5px;
 }
 
 .friend-status-indicator.online {
-background-color: #4CAF50;
+  background-color: #4CAF50;
 }
 
 .friend-status-indicator.offline {
-background-color: #ccc;
+  background-color: #ccc;
 }
 
 .friend-item {
-display: flex;
-align-items: center;
-padding: 8px 0;
-border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ccc;
 }
 
 .message-button {
-margin-left: auto;
-background-color: #2196F3;
-color: white;
-border: none;
-padding: 5px 10px;
-border-radius: 4px;
-cursor: pointer;
+  margin-left: auto;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .message-button:hover {
-background-color: #0b7dda;
+  background-color: #0b7dda;
 }
 
 .no-friends, .no-requests, .no-groups {
-color: #888;
-text-align: center;
-padding: 10px;
-font-style: italic;
+  color: #888;
+  text-align: center;
+  padding: 10px;
+  font-style: italic;
 }
 
 #delete-account-button {
-background-color: red;
-color: white;
-border: none;
-padding: 10px 20px;
-font-size: 13px;
-cursor: pointer;
-border-radius: 5px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 #delete-account-button:hover {
-background-color: darkred;
+  background-color: darkred;
 }
 
 .friend-checkbox {
-padding: 5px 0;
+  padding: 5px 0;
 }
 
 #group-name-input {
-width: 100%;
-padding: 8px;
-margin-bottom: 10px;
-border: 1px solid #ccc;
-border-radius: 4px;
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#search-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#search-query {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#search-form button {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>
 {% endblock %}
