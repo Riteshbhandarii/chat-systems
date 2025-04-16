@@ -1,0 +1,330 @@
+{% extends 'messaging/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Privacy Policy</h1>
+
+    <h2>1. Introduction</h2>
+    <p>This Privacy Policy describes how we collect, use, and protect your personal information when you use our messaging platform. We are committed to protecting your privacy and ensuring the security of your data.</p>
+
+    <div class="section-highlight">
+        <h2>2. Information We Collect</h2>
+        <h3>2.1 Personal Data</h3>
+        <p>We may collect the following personal data from you:</p>
+        <ul>
+            <li>Username</li>
+            <li>Email address (optional)</li>
+            <li>Password (hashed)</li>
+            <li>Profile information</li>
+            <li>Communication preferences</li>
+        </ul>
+    </div>
+
+    <h2>3. How We Use Your Information</h2>
+    <p>We may use your personal data for the following purposes:</p>
+    <ul>
+        <li>To create and manage your account</li>
+        <li>To authenticate your login and provide you with access to our platform</li>
+        <li>To enable communication with other users on the platform</li>
+        <li>To personalize your experience and provide you with relevant content</li>
+        <li>To respond to your inquiries and provide customer support</li>
+        <li>To improve our platform and develop new features</li>
+        <li>To send you important notifications and updates about our services</li>
+        <li>To detect and prevent fraud and abuse</li>
+    </ul>
+
+    <h2>4. Data Retention</h2>
+    <p>We will retain your personal data for as long as your account is active or as needed to provide you with our services. We may also retain and use your information as necessary to comply with our legal obligations, resolve disputes, and enforce our agreements.</p>
+
+    <h2>5. Sharing Your Information</h2>
+    <p>We do not sell your personal information to third parties. We may share your information with trusted service providers who assist us in operating our platform, such as hosting providers and security services. These service providers are contractually obligated to protect your information and to use it only for the purposes for which we disclose it to them. We may also disclose your information if required by law or in response to a valid legal request.</p>
+
+    <div class="section-highlight">
+        <h2>6. Your Rights</h2>
+        <p>Under the General Data Protection Regulation (GDPR), you have certain rights regarding your personal data:</p>
+        <ul>
+            <li><strong>Right to Access:</strong> You have the right to request access to the personal data we hold about you.</li>
+            <li><strong>Right to Rectification:</strong> You have the right to ask us to correct any inaccurate or incomplete personal data.</li>
+            <li><strong>Right to Erasure:</strong> You have the right to request the deletion of your personal data, and we will delete it immediately upon your request.</li>
+            <li><strong>Right to Restriction of Processing:</strong> You have the right to ask us to limit the processing of your personal data under certain circumstances.</li>
+            <li><strong>Right to Data Portability:</strong> You have the right to receive your personal data in a structured, commonly used, and machine-readable format and to transmit that data to another controller.</li>
+            <li><strong>Right to Object:</strong> You have the right to object to the processing of your personal data under certain circumstances.</li>
+            <li><strong>Right to Withdraw Consent:</strong> If we are processing your personal data based on your consent, you have the right to withdraw your consent at any time.</li>
+            <li><strong>Right to Lodge a Complaint:</strong> You have the right to lodge a complaint with a supervisory authority if you believe that our processing of your personal data infringes the GDPR.</li>
+        </ul>
+        <p>To exercise any of these rights, please contact us using the information provided in the Contact section below.</p>
+    </div>
+
+    <h2>7. Security</h2>
+    <p>We take reasonable measures to protect your personal information from unauthorized access, use, or disclosure. These measures include encryption, firewalls, and secure storage. However, no method of transmission over the internet or method of electronic storage is completely secure, and we cannot guarantee the absolute security of your information.</p>
+
+    <h2>8. Changes to This Privacy Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on our website. You are advised to review this Privacy Policy periodically for any changes.</p>
+
+    <h2>9. Contact Us</h2>
+    <p>If you have any questions about this Privacy Policy or any aspects of our service, please contact us at:</p>
+    <p>Email: <a href="mailto:bhanrit@gmail.com">bhanrit@gmail.com</a></p>
+
+    <div class="back-link-container">
+        <a href="{% url 'register' %}" class="back-link">Back to Registration</a>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -100% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+        50% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+        100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        background-color: #000000;
+        background-image: radial-gradient(circle at top left, #222222 0%, #000000 70%);
+        color: #ffffff;
+        overflow-x: hidden;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 700px;
+        margin: 40px auto;
+        background-color: #111111;
+        background-image: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(255, 255, 255, 0.1);
+        border: 1px solid #333333;
+        position: relative;
+        animation: fadeInUp 0.6s ease-out;
+        animation: glow 3s infinite ease-in-out;
+    }
+
+    .container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ffffff, #888888, #ffffff);
+        background-size: 200% 100%;
+        animation: shimmer 5s infinite linear;
+    }
+
+    h1, h2, h3 {
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 28px;
+        position: relative;
+        padding-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    h1::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #ffffff, #666666);
+        margin: 15px auto 0;
+        border-radius: 4px;
+    }
+
+    h2 {
+        margin-top: 35px;
+        border-bottom: 1px solid #444444;
+        padding-bottom: 10px;
+        font-size: 22px;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    h3 {
+        margin-top: 25px;
+        font-size: 18px;
+        color: #cccccc;
+        position: relative;
+        padding-left: 15px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    h3::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 18px;
+        background: linear-gradient(to bottom, #ffffff, #666666);
+        border-radius: 3px;
+    }
+
+    p {
+        margin-bottom: 20px;
+        font-size: 15px;
+        color: #aaaaaa;
+        line-height: 1.7;
+        letter-spacing: 0.3px;
+    }
+
+    ul {
+        margin-bottom: 20px;
+        padding-left: 30px;
+        list-style-type: none;
+    }
+
+    li {
+        margin-bottom: 10px;
+        font-size: 15px;
+        color: #aaaaaa;
+        position: relative;
+        padding-left: 20px;
+        line-height: 1.6;
+        letter-spacing: 0.3px;
+    }
+
+    li::before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: #ffffff;
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    a {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        position: relative;
+        letter-spacing: 0.5px;
+    }
+
+    a::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background-color: #ffffff;
+        transform: scaleX(0);
+        transform-origin: bottom right;
+        transition: transform 0.3s;
+    }
+
+    a:hover {
+        color: #cccccc;
+    }
+
+    a:hover::after {
+        transform: scaleX(1);
+        transform-origin: bottom left;
+        background-color: #cccccc;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 40px;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #ffffff, #aaaaaa);
+        color: #000000;
+        font-weight: 700;
+        font-size: 16px;
+        border-radius: 10px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .back-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.2), transparent);
+        transition: all 0.5s;
+    }
+
+    .back-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        color: #000000;
+    }
+
+    .back-link:hover::before {
+        left: 100%;
+    }
+
+    .back-link-container {
+        text-align: center;
+    }
+
+    strong {
+        color: #ffffff;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .section-highlight {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-left: 3px solid #ffffff;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 0 6px 6px 0;
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 25px 15px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        h2 {
+            font-size: 20px;
+        }
+
+        h3 {
+            font-size: 16px;
+        }
+    }
+</style>
+{% endblock %}

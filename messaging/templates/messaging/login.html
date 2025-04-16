@@ -1,106 +1,365 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Your Application</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background-color: #1e1e1e;
-            padding: 2.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid #333;
-        }
-        h1 {
-            color: #ffffff;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #333;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-            background-color: #2d2d2d;
-            color: #ffffff;
-            transition: all 0.3s;
-        }
-        input::placeholder {
-            color: #666;
-        }
-        input:focus {
-            outline: none;
-            border-color: #555;
-            background-color: #333;
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
-        }
-        .login-btn {
-            width: 100%;
-            background-color: #3a3a3a;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-        .login-btn:hover {
-            background-color: #4a4a4a;
-        }
-        .register-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #b3b3b3;
-            font-size: 14px;
-        }
-        .register-link a {
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .register-link a:hover {
-            text-decoration: underline;
-            color: #3498db;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>Welcome Back</h1>
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group">
-                <input type="text" name="username" placeholder="Username or Email" required>
-            </div>
-            <div class="form-group">
-                <input type="password" name="password" placeholder="Password" required>
-            </div>
-            <button type="submit" class="login-btn">Sign In</button>
-        </form>
-        <div class="register-link">
-            Don't have an account? <a href="{% url 'register' %}">Create one here</a>
+{% extends 'messaging/base.html' %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="header-icon">🔑</div>
+            <h2 class="login-title">Welcome Back</h2>
+            <div class="header-decoration"></div>
         </div>
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+
+            <div class="form-group animate-in">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username or Email</label>
+                <div class="input-container">
+                    <span class="input-icon">🧑</span>
+                    {{ form.username }}
+                </div>
+            </div>
+
+            <div class="form-group animate-in" style="animation-delay: 0.1s">
+                <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                <div class="input-container">
+                    <span class="input-icon">🔐</span>
+                    {{ form.password }}
+                </div>
+            </div>
+
+            {% if form.errors %}
+            <div class="error-messages animate-in" style="animation-delay: 0.2s">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p class="error-message">{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <p class="error-message">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="login-button animate-in" style="animation-delay: 0.3s">
+                <span class="button-text">Sign In</span>
+                <span class="button-icon">🚀</span>
+            </button>
+
+            <div class="forgot-password animate-in" style="animation-delay: 0.4s">
+                <a href="#">Forgot password?</a>
+            </div>
+
+            <div class="register-link animate-in" style="animation-delay: 0.5s">
+                Don't have an account? <a href="{% url 'register' %}">Create one here</a>
+            </div>
+
+            <p class="login-contact animate-in" style="animation-delay: 0.6s">Questions? Hit us up: <a href="mailto:bhanrit@gmail.com">bhanrit@gmail.com</a></p>
+        </form>
     </div>
-</body>
-</html>
+</div>
+
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+        50% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+        100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -100% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    body {
+        background-color: #000000;
+        background-image: radial-gradient(circle at top left, #222222 0%, #000000 70%);
+        margin: 0;
+        overflow-x: hidden;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .login-card {
+        background-color: #111111;
+        background-image: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(255, 255, 255, 0.1);
+        padding: 40px;
+        width: 100%;
+        max-width: 500px;
+        border: 1px solid #333333;
+        position: relative;
+        overflow: hidden;
+        animation: glow 3s infinite ease-in-out;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ffffff, #888888, #ffffff);
+        background-size: 200% 100%;
+        animation: shimmer 5s infinite linear;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .header-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        animation: pulse 2s infinite ease-in-out;
+        color: #ffffff;
+    }
+
+    .header-decoration {
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #ffffff, #666666);
+        margin: 12px auto 0;
+        border-radius: 4px;
+    }
+
+    .login-title {
+        color: #ffffff;
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .animate-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+    }
+
+    .form-group {
+        margin-bottom: 28px;
+    }
+
+    .form-label {
+        color: #cccccc;
+        margin-bottom: 10px;
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .input-container {
+        position: relative;
+        transition: transform 0.3s;
+    }
+
+    .input-container:focus-within {
+        transform: scale(1.02);
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #888888;
+        font-size: 18px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 15px 15px 15px 45px;
+        border: 1px solid #444444;
+        border-radius: 10px;
+        background-color: #1c1c1c;
+        color: #ffffff;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #ffffff;
+        background-color: #222222;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    }
+
+    .error-messages {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid #ffffff;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .error-message {
+        color: #ff6666;
+        margin: 5px 0;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+    }
+
+    .login-button {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #ffffff, #aaaaaa);
+        color: #000000;
+        border: none;
+        border-radius: 10px;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .login-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.2), transparent);
+        transition: all 0.5s;
+    }
+
+    .login-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+    }
+
+    .login-button:hover::before {
+        left: 100%;
+    }
+
+    .button-text {
+        margin-right: 10px;
+    }
+
+    .button-icon {
+        font-size: 20px;
+        transition: transform 0.3s;
+    }
+
+    .login-button:hover .button-icon {
+        transform: translateX(6px);
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-top: 30px;
+        color: #aaaaaa;
+        font-size: 15px;
+        letter-spacing: 0.3px;
+    }
+
+    .forgot-password a {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        letter-spacing: 0.5px;
+    }
+
+    .forgot-password a:hover {
+        color: #cccccc;
+        text-decoration: underline;
+    }
+
+    .register-link {
+        text-align: center;
+        margin-top: 30px;
+        color: #aaaaaa;
+        font-size: 15px;
+        letter-spacing: 0.3px;
+    }
+
+    .register-link a {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        letter-spacing: 0.5px;
+    }
+
+    .register-link a:hover {
+        color: #cccccc;
+        text-decoration: underline;
+    }
+
+    .login-contact {
+        text-align: center;
+        color: #aaaaaa;
+        font-size: 15px;
+        margin-top: 35px;
+        border-top: 1px solid #444444;
+        padding-top: 25px;
+        letter-spacing: 0.3px;
+    }
+
+    .login-contact a {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        letter-spacing: 0.5px;
+    }
+
+    .login-contact a:hover {
+        color: #cccccc;
+    }
+
+    @media (max-width: 480px) {
+        .login-card {
+            padding: 25px 15px;
+        }
+
+        .login-title {
+            font-size: 24px;
+        }
+
+        .login-button {
+            font-size: 15px;
+            padding: 14px;
+        }
+    }
+</style>
+{% endblock %}

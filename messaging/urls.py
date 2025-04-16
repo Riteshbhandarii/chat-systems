@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -33,5 +34,9 @@ urlpatterns = [
     
     # loading user info
     path('get_user_info/', views.user_info, name='get_user_info'),
-   
+    # privacy consent 
+    path('privacy-policy/', TemplateView.as_view(template_name='messaging/consent.html'), name='privacy_policy'),
+
+
+
 ]
