@@ -1,6 +1,17 @@
 {% extends 'messaging/base.html' %}
 {% block content %}
+
 <div class="chat-container">
+  <div class="star" style="width: 2px; height: 2px; left: 10%; animation: fallingStar 3s linear infinite;"></div>
+<div class="star" style="width: 3px; height: 3px; left: 30%; animation: fallingStar 5s linear infinite; animation-delay: 1s;"></div>
+<div class="star" style="width: 2px; height: 2px; left: 50%; animation: fallingStar 4s linear infinite; animation-delay: 2s;"></div>
+<div class="star" style="width: 4px; height: 4px; left: 70%; animation: fallingStar 6s linear infinite;"></div>
+<div class="star" style="width: 3px; height: 3px; left: 90%; animation: fallingStar 3.5s linear infinite; animation-delay: 0.5s;"></div>
+<div class="star" style="width: 1px; height: 1px; left: 5%; animation: fallingStar 7s linear infinite; animation-delay: 3s;"></div>
+<div class="star" style="width: 2px; height: 2px; left: 20%; animation: fallingStar 4.5s linear infinite;"></div>
+<div class="star" style="width: 3px; height: 3px; left: 40%; animation: fallingStar 5.5s linear infinite; animation-delay: 1.5s;"></div>
+<div class="star" style="width: 1px; height: 1px; left: 60%; animation: fallingStar 6.5s linear infinite; animation-delay: 2.5s;"></div>
+<div class="star" style="width: 4px; height: 4px; left: 80%; animation: fallingStar 4s linear infinite;"></div>
   <div class="chat-header">
     <div class="left">
       <div class="settings-container">
@@ -787,26 +798,50 @@ document.getElementById('search-form').addEventListener('submit', function(event
 </script>
 
 <style>
-  body {
-    background-color: white;
-  }
-  
-  .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: white;
-  }
-  
-  .chat-header {
-    display: flex;
-    align-items: center;
-    background-color: white;
-    color: black;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
+
+body {
+    background-color: black;
+    position: relative; /* Keep this if needed for other positioning contexts */
+}
+
+.star {
+    position: fixed; /* Fixed position to stay in the background */
+    top: -20px; /* Start above the viewport */
+    background: white;
+    border-radius: 50%; /* Make them circular */
+    opacity: 0.7; /* Slightly transparent */
+    /* z-index: -1; */ /* REMOVE OR COMMENT OUT THIS LINE */
+}
+
+@keyframes fallingStar {
+    to {
+        transform: translateY(100vh); /* Animate down the full viewport height */
+        opacity: 0; /* Fade out at the end */
+    }
+}
+/* Keep your existing chat-container style */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: rgb(0, 0, 0);
+  /* Add overflow: hidden; if you want to strictly contain stars, */
+  /* but fixed positioning usually handles this relative to viewport */
+  /* overflow: hidden; */
+}
+
+/* Keep the rest of your styles */
+.chat-header {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  color: black;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: relative; /* Ensure header stays above stars if needed */
+  z-index: 1; /* Ensure header stays above stars */
+}
+
   .chat-header .left {
     width: auto;
   }
