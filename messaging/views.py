@@ -347,25 +347,18 @@ def get_friends(request):
 
 
 
+
 @login_required
 def delete_account(request):
     if request.method == 'POST':
         try:
             user = request.user
-            user.delete()  # Delete the logged-in user's account
-
-            # Clear the session after deletion (optional, but good practice)
+            user.delete()
             request.session.flush()
-
-            # Return a JSON success response
             return JsonResponse({"success": True})
         except Exception as e:
-            # Log the error for debugging purposes
-            print(f"Error deleting account: {e}")
             return JsonResponse({"success": False, "error": str(e)})
-
-    # If the method is GET, return an error as deletion should be a POST request
-    return JsonResponse({"error": "Invalid request method"}, status=405)
+    return redirect('home')
 
 
 @login_required
