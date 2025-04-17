@@ -426,3 +426,46 @@ def user_info(request):
         return JsonResponse(user_data)
 
     return JsonResponse({"error": "Method not allowed."}, status=405)
+
+
+
+@login_required
+def get_unread_messages(request):
+    """
+    View to fetch unread messages for the logged-in user for the notification button.
+    Returns a JSON response containing a list of unread messages.
+    """
+    if request.method == 'GET':
+        user = request.user
+        unread_messages_data = []
+
+        # Fetch unread direct messages
+        unread_direct = Message.objects.filter(receiver=user, read=False).order_by('-timestamp')
+        for message in unread_direct:
+            unread_messages_data.append({
+                'id': message.id,
+                'sender': message.sender.username,
+                'message': message.content,
+                'timestamp': message.timestamp.isoformat(),
+                'read': message.read,
+                'isGroup': False,
+                'friend_id': message.sender.id
+            })
+
+        # Fetch unread group messages
+        unread_group = Groupmchatmessage.objects.filter(group_chat__members=user).exclude(read_by=user).order_by('-timestamp')
+        for message in unread_group:
+            unread_messages_data.append({
+                'id': message.id,
+                'sender': message.sender.username,
+                'message': message.content,
+                'timestamp': message.timestamp.isoformat(),
+                'read': False,  # Group messages don't have a single 'read' flag
+                'isGroup': True,
+                'group_id': message.group_chat.id,
+                'group_name': message.group_chat.name
+            })
+
+        return JsonResponse({'messages': unread_messages_data})
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=400)

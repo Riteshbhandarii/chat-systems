@@ -37,6 +37,9 @@ urlpatterns = [
     # privacy consent 
     path('privacy-policy/', TemplateView.as_view(template_name='messaging/consent.html'), name='privacy_policy'),
 
+    # notification button
+    path('get_unread_messages/', views.get_unread_messages, name='get_unread_messages'),
+
 
 
 ]
