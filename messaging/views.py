@@ -353,26 +353,20 @@ def delete_account(request):
         try:
             user = request.user
             user.delete()  # Delete the logged-in user's account
-            
-            # Clear the session after deletion
+
+            # Clear the session after deletion (optional, but good practice)
             request.session.flush()
 
-            # Show success message after account deletion
-            messages.success(request, "Your account has been deleted successfully.")
-
-            # Redirect to home after clearing the session
-            return redirect('home')  # Redirect to the home page after deletion
+            # Return a JSON success response
+            return JsonResponse({"success": True})
         except Exception as e:
-            messages.error(request, f"An error occurred while deleting your account: {str(e)}")
-            return redirect('home')  # Redirect to home if an error occurs
+            # Log the error for debugging purposes
+            print(f"Error deleting account: {e}")
+            return JsonResponse({"success": False, "error": str(e)})
 
-    # If the method is GET, you can directly redirect to home without any confirmation.
-    return redirect('home')
+    # If the method is GET, return an error as deletion should be a POST request
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from .models import Friend, Message, Groupchat, Groupmchatmessage
-from django.utils import timezone
 
 @login_required
 def user_info(request):

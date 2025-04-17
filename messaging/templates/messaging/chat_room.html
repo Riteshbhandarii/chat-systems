@@ -152,6 +152,7 @@ function deleteAccount() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                alert("Your account has been deleted successfully."); // Optional success message
                 window.location.href = '/';
             } else {
                 alert(data.error || "Failed to delete account.");
