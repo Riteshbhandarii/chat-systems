@@ -928,7 +928,6 @@ document.getElementById('search-form').addEventListener('submit', function(event
     fetchContacts();
 });
 </script>
-
 <style>
   /* --- Base Styles and Star Animations --- */
   body {
@@ -1157,22 +1156,21 @@ document.getElementById('search-form').addEventListener('submit', function(event
 
   /* --- Contacts Overlay --- */
   .contacts-overlay {
-    /* Existing styles... */
-    display: none; /* Ensure it's initially hidden */
-    position: fixed; /* Changed from absolute to fixed */
+    display: none;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-    z-index: 1000; /* Ensure it's on top of other elements */
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
     justify-content: center;
     align-items: center;
-    overflow: auto; /* Handle content overflow */
+    overflow: auto;
   }
 
   .contacts-content {
-    position: relative; /* To position the close button relative to this */
+    position: relative;
     background-color: #1a1a1a;
     padding: 20px;
     border-radius: 8px;
@@ -1180,9 +1178,8 @@ document.getElementById('search-form').addEventListener('submit', function(event
     width: 90%;
     max-width: 800px;
     display: flex;
-    flex-direction: row; /* Keep the flex direction for the content */
+    flex-direction: row;
   }
-
 
   .contacts-left {
     width: 40%;
@@ -1204,7 +1201,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
   }
 
   #close-contacts {
-    position: absolute; /* Position it relative to .contacts-content */
+    position: absolute;
     top: 10px;
     right: 10px;
     background: none;
@@ -1213,9 +1210,8 @@ document.getElementById('search-form').addEventListener('submit', function(event
     font-size: 16px;
     cursor: pointer;
     transition: color 0.3s ease;
-    z-index: 1001; /* Ensure it's above the content */
+    z-index: 1001;
   }
-
 
   /* --- Search Form --- */
   #search-form {
@@ -1316,6 +1312,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
     padding: 15px;
     border-radius: 8px;
     margin-top: 10px;
+    box-sizing: border-box;
   }
 
   #group-name-input {
@@ -1325,7 +1322,9 @@ document.getElementById('search-form').addEventListener('submit', function(event
     border-radius: 6px;
     background: #333;
     color: #e0e0e0;
+    font-size: 0.95rem;
     margin-bottom: 10px;
+    box-sizing: border-box;
   }
 
   .friend-checkbox {
