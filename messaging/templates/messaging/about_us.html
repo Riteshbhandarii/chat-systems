@@ -16,6 +16,27 @@
         border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
         line-height: 1.6;
+        text-align: center; /* To center the button at the end */
+        padding-bottom: 60px; /* Add extra padding for the button */
+    }
+
+    .return-home-button {
+        display: inline-block; /* To control width and margin */
+        padding: 10px 20px;
+        background-color: #000000; /* Black background */
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        border: 1px solid #333; /* Subtle border */
+        margin-top: 30px; /* Space above the button */
+    }
+
+    .return-home-button:hover {
+        background-color: #333; /* Darker hover effect */
+        border-color: #555;
     }
 
     .about-container h2 {
@@ -77,19 +98,28 @@
         margin-bottom: 15px;
     }
 
-    .linkedin-link {
+    .linkedin-link, .github-link {
         display: inline-block;
         padding: 10px 20px;
-        background-color: #0077b5;
+        background-color: #333; /* Dark grey for GitHub */
         color: #ffffff;
         text-decoration: none;
         border-radius: 5px;
         font-weight: bold;
         transition: background-color 0.3s ease;
+        margin-left: 10px; /* Space between the links */
+    }
+
+    .linkedin-link {
+        background-color: #0077b5; /* LinkedIn blue */
     }
 
     .linkedin-link:hover {
         background-color: #005a87;
+    }
+
+    .github-link:hover {
+        background-color: #555;
     }
 
     .privacy-security-list {
@@ -217,10 +247,13 @@
     <div class="connect-section">
         <h3>Let's Connect!</h3>
         <p>If you're interested in building something cool, collaborating on projects, or just want to connect, feel free to reach
-            out on LinkedIn:</p>
+            out on LinkedIn or check out the code on GitHub:</p>
         <a href="https://www.linkedin.com/in/ritesh-bhandari-0371b5294" target="_blank" class="linkedin-link">Connect on
             LinkedIn</a>
+        <a href="https://github.com/Riteshbhandarii" target="_blank" class="github-link">View on GitHub</a>
     </div>
+
+    <a href="{% url 'home' %}" class="return-home-button">Return to Home</a>
 
     <p>This project has been a valuable experience in applying data engineering concepts to build a functional application.
         Thank you for your interest in UmbraChat!</p>
