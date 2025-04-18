@@ -4,8 +4,7 @@
 <div class="register-container">
     <div class="register-card">
         <div class="register-header">
-            <div class="header-icon">⚡</div>
-            <h2 class="register-title">Join the Adventure</h2>
+            <h2 class="register-title">Create Account</h2>
             <div class="header-decoration"></div>
         </div>
 
@@ -15,7 +14,6 @@
             <div class="form-group animate-in">
                 <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
                 <div class="input-container">
-                    <span class="input-icon">🧑</span>
                     {{ form.username }}
                 </div>
             </div>
@@ -23,7 +21,6 @@
             <div class="form-group animate-in" style="animation-delay: 0.1s">
                 <label for="{{ form.email.id_for_label }}" class="form-label">Email (Optional)</label>
                 <div class="input-container">
-                    <span class="input-icon">📧</span>
                     {{ form.email }}
                 </div>
             </div>
@@ -31,7 +28,6 @@
             <div class="form-group animate-in" style="animation-delay: 0.2s">
                 <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
                 <div class="input-container">
-                    <span class="input-icon">🔐</span>
                     {{ form.password }}
                 </div>
             </div>
@@ -39,7 +35,6 @@
             <div class="form-group animate-in" style="animation-delay: 0.3s">
                 <label for="{{ form.password_confirm.id_for_label }}" class="form-label">Confirm Password</label>
                 <div class="input-container">
-                    <span class="input-icon">🔐</span>
                     {{ form.password_confirm }}
                 </div>
             </div>
@@ -52,7 +47,7 @@
                             I agree to the <a href="/privacy-policy/" target="_blank" class="consent-policy-link">Privacy Policy</a>.
                         </label>
                     </div>
-                    <p class="consent-explanation">Your data helps us make things awesome!</p>
+                    <p class="consent-explanation">Your data helps us improve your experience.</p>
                 </div>
             </div>
 
@@ -70,15 +65,14 @@
             {% endif %}
 
             <button type="submit" class="register-button animate-in" style="animation-delay: 0.5s">
-                <span class="button-text">Let's Go!</span>
-                <span class="button-icon">🚀</span>
+                <span class="button-text">Sign Up</span>
             </button>
 
             <div class="login-link animate-in" style="animation-delay: 0.6s">
-                Got an account? <a href="{% url 'login' %}">Jump in!</a>
+                Got an account? <a href="{% url 'login' %}">Log in</a>
             </div>
 
-            <p class="registration-contact animate-in" style="animation-delay: 0.7s">Questions? Hit us up: <a href="mailto:bhanrit@gmail.com">bhanrit@gmail.com</a></p>
+            <p class="registration-contact animate-in" style="animation-delay: 0.7s">Questions? Contact: <a href="mailto:bhanrit@gmail.com">bhanrit@gmail.com</a></p>
         </form>
     </div>
 </div>
@@ -87,7 +81,7 @@
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(15px);
         }
         to {
             opacity: 1;
@@ -95,16 +89,10 @@
         }
     }
 
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-
     @keyframes glow {
-        0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        50% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
-        100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+        0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.05); }
+        50% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); }
+        100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.05); }
     }
 
     @keyframes shimmer {
@@ -125,17 +113,17 @@
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        padding: 20px;
+        padding: 15px;
     }
 
     .register-card {
         background-color: #111111;
         background-image: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
-        border-radius: 16px;
-        box-shadow: 0 12px 40px rgba(255, 255, 255, 0.1);
-        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(255, 255, 255, 0.1);
+        padding: 30px;
         width: 100%;
-        max-width: 500px;
+        max-width: 400px;
         border: 1px solid #333333;
         position: relative;
         overflow: hidden;
@@ -148,56 +136,48 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #ffffff, #888888, #ffffff);
+        height: 3px;
+        background: linear-gradient(90deg, #ffffff, #cccccc);
         background-size: 200% 100%;
         animation: shimmer 5s infinite linear;
     }
 
     .register-header {
         text-align: center;
-        margin-bottom: 40px;
-    }
-
-    .header-icon {
-        font-size: 32px;
-        margin-bottom: 12px;
-        animation: pulse 2s infinite ease-in-out;
-        color: #ffffff;
+        margin-bottom: 30px;
     }
 
     .header-decoration {
-        width: 80px;
-        height: 4px;
-        background: linear-gradient(90deg, #ffffff, #666666);
-        margin: 12px auto 0;
-        border-radius: 4px;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #ffffff, #cccccc);
+        margin: 10px auto 0;
+        border-radius: 3px;
     }
 
     .register-title {
         color: #ffffff;
-        font-size: 28px;
-        font-weight: 700;
+        font-size: 24px;
+        font-weight: 600;
         margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
 
     .animate-in {
-        animation: fadeInUp 0.6s ease-out forwards;
+        animation: fadeInUp 0.5s ease-out forwards;
         opacity: 0;
     }
 
     .form-group {
-        margin-bottom: 28px;
+        margin-bottom: 20px;
     }
 
     .form-label {
         color: #cccccc;
-        margin-bottom: 10px;
-        font-size: 15px;
+        margin-bottom: 8px;
+        font-size: 14px;
         font-weight: 500;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.2px;
     }
 
     .input-container {
@@ -206,28 +186,19 @@
     }
 
     .input-container:focus-within {
-        transform: scale(1.02);
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #888888;
-        font-size: 18px;
+        transform: scale(1.01);
     }
 
     input[type="text"],
     input[type="email"],
     input[type="password"] {
         width: 100%;
-        padding: 15px 15px 15px 45px;
+        padding: 12px;
         border: 1px solid #444444;
-        border-radius: 10px;
+        border-radius: 8px;
         background-color: #1c1c1c;
         color: #ffffff;
-        font-size: 16px;
+        font-size: 15px;
         transition: all 0.3s ease;
         box-sizing: border-box;
     }
@@ -236,43 +207,42 @@
         outline: none;
         border-color: #ffffff;
         background-color: #222222;
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
     }
 
     .error-messages {
         background-color: rgba(255, 255, 255, 0.05);
-        border-left: 4px solid #ffffff;
-        padding: 12px 15px;
-        margin-bottom: 20px;
-        border-radius: 0 8px 8px 0;
+        border-left: 3px solid #ffdddd;
+        padding: 10px 12px;
+        margin-bottom: 15px;
+        border-radius: 0 6px 6px 0;
     }
 
     .error-message {
-        color: #ff6666;
-        margin: 5px 0;
-        font-size: 14px;
-        letter-spacing: 0.3px;
+        color: #ffaaaa;
+        margin: 4px 0;
+        font-size: 13px;
+        letter-spacing: 0.2px;
     }
 
     .register-button {
         width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #ffffff, #aaaaaa);
+        padding: 14px;
+        background: linear-gradient(135deg, #ffffff, #cccccc);
         color: #000000;
         border: none;
-        border-radius: 10px;
-        font-size: 17px;
-        font-weight: 700;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
-        margin-top: 15px;
+        margin-top: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
         position: relative;
         overflow: hidden;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
 
     .register-button::before {
@@ -287,8 +257,8 @@
     }
 
     .register-button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 255, 255, 0.2);
     }
 
     .register-button:hover::before {
@@ -296,32 +266,23 @@
     }
 
     .button-text {
-        margin-right: 10px;
-    }
-
-    .button-icon {
-        font-size: 20px;
-        transition: transform 0.3s;
-    }
-
-    .register-button:hover .button-icon {
-        transform: translateX(6px);
+        margin-right: 8px;
     }
 
     .login-link {
         text-align: center;
-        margin-top: 30px;
+        margin-top: 20px;
         color: #aaaaaa;
-        font-size: 15px;
-        letter-spacing: 0.3px;
+        font-size: 14px;
+        letter-spacing: 0.2px;
     }
 
     .login-link a {
         color: #ffffff;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.3s;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
     }
 
     .login-link a:hover {
@@ -330,53 +291,53 @@
     }
 
     .consent-section {
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
 
     .consent-box {
         border: 1px solid #444444;
-        border-radius: 10px;
-        padding: 25px;
+        border-radius: 8px;
+        padding: 20px;
         background-color: #1a1a1a;
         transition: all 0.3s;
-        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .consent-box:hover {
         border-color: #ffffff;
-        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2), 0 0 0 4px rgba(255, 255, 255, 0.1);
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.1);
     }
 
     .consent-checkbox-container {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .consent-checkbox-container input[type="checkbox"] {
-        width: 22px;
-        height: 22px;
-        margin-right: 14px;
-        margin-top: 3px;
+        width: 18px;
+        height: 18px;
+        margin-right: 12px;
+        margin-top: 2px;
         cursor: pointer;
         accent-color: #ffffff;
-        border-radius: 5px;
+        border-radius: 4px;
     }
 
     .consent-label {
         color: #dddddd;
-        font-size: 16px;
-        line-height: 1.5;
-        letter-spacing: 0.3px;
+        font-size: 14px;
+        line-height: 1.4;
+        letter-spacing: 0.2px;
     }
 
     .consent-policy-link {
         color: #ffffff;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.3s;
         position: relative;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
     }
 
     .consent-policy-link::after {
@@ -384,7 +345,7 @@
         position: absolute;
         width: 100%;
         height: 2px;
-        bottom: -3px;
+        bottom: -2px;
         left: 0;
         background-color: #ffffff;
         transform: scaleX(0);
@@ -404,28 +365,28 @@
 
     .consent-explanation {
         color: #aaaaaa;
-        font-size: 14px;
-        margin: 10px 0 0 36px;
-        line-height: 1.5;
-        letter-spacing: 0.3px;
+        font-size: 13px;
+        margin: 8px 0 0 30px;
+        line-height: 1.4;
+        letter-spacing: 0.2px;
     }
 
     .registration-contact {
         text-align: center;
         color: #aaaaaa;
-        font-size: 15px;
-        margin-top: 35px;
+        font-size: 14px;
+        margin-top: 25px;
         border-top: 1px solid #444444;
-        padding-top: 25px;
-        letter-spacing: 0.3px;
+        padding-top: 20px;
+        letter-spacing: 0.2px;
     }
 
     .registration-contact a {
         color: #ffffff;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.3s;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
     }
 
     .registration-contact a:hover {
@@ -434,16 +395,16 @@
 
     @media (max-width: 480px) {
         .register-card {
-            padding: 25px 15px;
+            padding: 20px 12px;
         }
 
         .register-title {
-            font-size: 24px;
+            font-size: 22px;
         }
 
         .register-button {
-            font-size: 15px;
-            padding: 14px;
+            font-size: 14px;
+            padding: 12px;
         }
     }
 </style>
