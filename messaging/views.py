@@ -428,18 +428,17 @@ def user_info(request):
     return JsonResponse({"error": "Method not allowed."}, status=405)
 
 
-
 @login_required
 def get_unread_messages(request):
     """
-    View to fetch unread messages for the logged-in user for the notification button.
+    View to fetch unread messages for the logged-in user and mark them as read.
     Returns a JSON response containing a list of unread messages.
     """
     if request.method == 'GET':
         user = request.user
         unread_messages_data = []
 
-        # Fetch unread direct messages
+        # Mark direct messages as read
         unread_direct = Message.objects.filter(receiver=user, read=False).order_by('-timestamp')
         for message in unread_direct:
             unread_messages_data.append({
@@ -447,12 +446,14 @@ def get_unread_messages(request):
                 'sender': message.sender.username,
                 'message': message.content,
                 'timestamp': message.timestamp.isoformat(),
-                'read': message.read,
+                'read': True,  # Mark as read in the JSON response
                 'isGroup': False,
                 'friend_id': message.sender.id
             })
+            message.read = True
+            message.save()
 
-        # Fetch unread group messages
+        # Mark group messages as read by the user
         unread_group = Groupmchatmessage.objects.filter(group_chat__members=user).exclude(read_by=user).order_by('-timestamp')
         for message in unread_group:
             unread_messages_data.append({
@@ -460,12 +461,17 @@ def get_unread_messages(request):
                 'sender': message.sender.username,
                 'message': message.content,
                 'timestamp': message.timestamp.isoformat(),
-                'read': False,  # Group messages don't have a single 'read' flag
+                'read': False, # Still false in JSON, but handled on click
                 'isGroup': True,
                 'group_id': message.group_chat.id,
                 'group_name': message.group_chat.name
             })
+            message.read_by.add(user) # Mark as read by the current user
+            message.save()
 
         return JsonResponse({'messages': unread_messages_data})
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
+    
+
+    

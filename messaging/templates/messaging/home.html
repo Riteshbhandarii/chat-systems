@@ -1,38 +1,435 @@
 {% extends 'messaging/base.html' %}
-{% block title %}Home Page{% endblock %}
-
+{% block title %}DarkOrbit | Secure Messaging{% endblock %}
 {% block content %}
-<h1>Welcome to the Messaging App</h1>
-
-{% if user.is_authenticated %}
-    <div>
-        <p>Welcome, {{ user.username }}!</p>
-        </div>
-{% else %}
-    <div>
-        <a href="{% url 'login' %}" class="button">Login</a>
-        <a href="{% url 'register' %}" class="button">Sign Up</a>
-    </div>
-{% endif %}
-
 <style>
-    .button {
-        display: inline-block;
-        padding: 10px 15px;
-        background-color: #4CAF50;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-        margin: 5px;
-        font-weight: bold;
-        text-align: center;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s;
+    body {
+        font-family: 'Orbitron', sans-serif;
+        background-color: #000000;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow-x: hidden;
+        perspective: 1200px;
     }
 
-    .button:hover {
-        background-color: #45a049;
+    .top-bar {
+        background-color: rgba(0, 0, 0, 0.85);
+        padding: 20px 30px;
+        border-bottom: 1px solid #000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        z-index: 100;
+        backdrop-filter: blur(5px);
+    }
+
+    .top-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .top-right {
+        display: flex;
+        align-items: center;
+    }
+
+    .logo {
+        font-size: 2.4em;
+        font-weight: 800;
+        color: #ffffff;
+        margin-right: 30px;
+        letter-spacing: 1px;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .auth-buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .auth-button {
+        display: inline-block;
+        padding: 14px 26px;
+        background: #000000;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .auth-button:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: 0.5s;
+    }
+
+    .auth-button:hover:after {
+        left: 100%;
+    }
+
+    .hero-container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0 20px;
+        transform-style: preserve-3d;
+        position: relative;
+        z-index: 1;
+        min-height: 70vh;
+    }
+
+    .info-box {
+        display: none;
+    }
+
+    .info-box:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    }
+
+    .info-box:hover {
+        transform: translateY(-5px) translateZ(20px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+
+    .info-box h2 {
+        color: #ffffff;
+        margin-top: 0;
+        margin-bottom: 25px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    }
+
+    .info-box p {
+        line-height: 1.9;
+        margin-bottom: 0;
+        font-size: 1.05em;
+        color: #cccccc;
+    }
+
+    .bottom-bar {
+        background-color: rgba(0, 0, 0, 0.95);
+        color: #ffffff;
+        padding: 5px 30px;
+        border-top: 1px solid #000;
+        text-align: center;
+        width: 100%;
+        z-index: 100;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
+        margin-top: auto;
+        position: fixed; /* Changed to fixed positioning */
+        bottom: 0;            /* Positioned at the bottom */
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .bottom-links {
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        flex-wrap: wrap;
+        padding: 5px 0;
+    }
+
+    .bottom-link {
+        color: #bbbbbb;
+        text-decoration: none;
+        transition: all 0.3s;
+        position: relative;
+        padding: 5px 0;
+    }
+
+    .bottom-link:after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 1px;
+        bottom: 0;
+        left: 0;
+        background-color: #ffffff;
+        transition: width 0.3s ease;
+    }
+
+    .bottom-link:hover {
+        color: #ffffff;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+
+    .bottom-link:hover:after {
+        width: 100%;
+    }
+
+    #sky-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -10;
+    }
+
+    @keyframes fadeInUp3D {
+        from {
+            opacity: 0;
+            transform: translateY(40px) translateZ(0);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) translateZ(15px);
+        }
+    }
+
+    .feature-icon {
+        font-size: 2.5em;
+        margin-bottom: 15px;
+        color: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+        .info-box {
+            padding: 30px;
+            width: 90%;
+        }
+
+        .bottom-links {
+            gap: 15px;
+        }
+
+        .auth-button {
+            padding: 12px 20px;
+        }
+
+        .top-bar {
+            flex-direction: column;
+            gap: 15px;
+        }
+    }
+
+    .tagline {
+        font-size: 4em;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+        letter-spacing: 0.5px;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        animation: fadeInOut 6s ease-in-out infinite;
+        text-align: center;
+        transform-origin: center;
+        opacity: 1;
+        display: inline-block;
+    }
+
+    .tagline span:nth-child(1) {
+        color: #ffffff;
+    }
+
+    .tagline span {
+        color: #ffffff;
+    }
+
+    @keyframes fadeInOut {
+        0% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 0.2;
+        }
+
+        100% {
+            opacity: 0;
+        }
     }
 </style>
+
+<canvas id="sky-canvas"></canvas>
+
+<div class="top-bar">
+    <div class="top-left">
+        <div class="logo">DarkOrbit</div>
+    </div>
+    <div class="top-right">
+        <div class="auth-buttons">
+            <a href="{% url 'login' %}" class="auth-button">Login</a>
+            <a href="{% url 'register' %}" class="auth-button">Sign Up</a>
+        </div>
+    </div>
+</div>
+
+<div class="hero-container">
+    <div class="tagline">
+        Where night owls connect...
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <div class="bottom-links">
+        <a href="#" class="bottom-link">About</a>
+        <a href="#" class="bottom-link">Features</a>
+        <a href="#" class="bottom-link">Security</a>
+        <a href="#" class="bottom-link">Privacy Policy</a>
+        <a href="#" class="bottom-link">Support</a>
+        <a href="#" class="bottom-link">Contact</a>
+    </div>
+</div>
+
+<script>
+    // Enhanced star field animation with smaller stars distributed across the entire page
+    const canvas = document.getElementById('sky-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Reduced star count for better performance
+    const stars = [];
+    const numStars = 200; // Reduced from 350
+    const starColors = [
+        'rgba(255, 255, 255, 0.8)',
+        'rgba(255, 255, 255, 0.6)',
+        'rgba(255, 255, 255, 0.4)',
+        'rgba(200, 200, 200, 0.5)',
+    ];
+
+    // Function to generate a random number with a Gaussian distribution
+    // Source: https://stackoverflow.com/a/36481059
+    function gaussianRandom(mean = 0, stdev = 1) {
+        let u = 0, v = 0;
+        while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+        while (v === 0) v = Math.random();
+        const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        return num * stdev + mean;
+    }
+
+    // Create stars with multi-directional movement and Gaussian distribution
+    for (let i = 0; i < numStars; i++) {
+        const radius = Math.random() * 0.8 + 0.2;
+        // Use Gaussian distribution for x and y coordinates
+        const x = gaussianRandom(canvas.width / 2, canvas.width / 3); // Mean: center, Standard deviation: ~1/3 of width
+        const y = gaussianRandom(canvas.height / 2, canvas.height / 3); // Mean: center, Standard deviation: ~1/3 of height
+
+        const directionX = Math.random() * 2 - 1;
+        const directionY = Math.random() * 2 - 1;
+        const length = Math.sqrt(directionX * directionX + directionY * directionY);
+        const normalizedX = directionX / length;
+        const normalizedY = directionY / length;
+        const speed = Math.random() * 0.2 + 0.05;
+
+        stars.push({
+            x: x,
+            y: y,
+            radius: radius,
+            color: starColors[Math.floor(Math.random() * starColors.length)],
+            velocityX: normalizedX * speed,
+            velocityY: normalizedY * speed,
+            // Simplified twinkling effect: Only update every few frames
+            twinkleSpeed: Math.random() * 0.08 + 0.02, // Increased speed
+            twinkleFactor: Math.random() * Math.PI * 2, // Start with a random phase
+            lastUpdate: 0 // Keep track of the last update
+        });
+    }
+
+    let frameCount = 0;
+    function drawStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        stars.forEach(star => {
+            star.x += star.velocityX;
+            star.y += star.velocityY;
+
+            if (star.x < 0) star.x = canvas.width;
+            if (star.x > canvas.width) star.x = 0;
+            if (star.y < 0) star.y = canvas.height;
+            if (star.y > canvas.height) star.y = 0;
+
+            // Increased update frequency for smoother animation
+            const updateInterval = 2; // Update every 2 frames
+
+            if (frameCount - star.lastUpdate >= updateInterval) {
+                star.twinkleFactor += star.twinkleSpeed;
+                star.lastUpdate = frameCount;
+            }
+            const twinkleScale = 0.3 * Math.sin(star.twinkleFactor) + 1;
+
+
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius * twinkleScale, 0, Math.PI * 2);
+            ctx.fillStyle = star.color;
+            ctx.fill();
+
+            if (star.radius > 0.7) {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius * 2 * twinkleScale, 0, Math.PI * 2);
+                ctx.fillStyle = star.color.replace(')', ', 0.2)').replace('rgba', 'rgba');
+                ctx.fill();
+            }
+        });
+        frameCount++;
+    }
+
+    function animate() {
+        drawStars();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        const boxes = document.querySelectorAll('.info-box');
+        const mouseX = e.clientX / window.innerWidth - 0.5;
+        const mouseY = e.clientY / window.innerHeight - 0.5;
+
+        boxes.forEach(box => {
+            const boxRect = box.getBoundingClientRect();
+            const boxCenterX = boxRect.left + boxRect.width / 2;
+            const boxCenterY = boxRect.top + boxRect.height / 2;
+
+            const distanceX = (boxCenterX - e.clientX) / 30;
+            const distanceY = (boxCenterY - e.clientY) / 30;
+
+            box.style.transform = `translateY(-5px) translateZ(20px) rotateX(${distanceY}deg) rotateY(${-distanceX}deg)`;
+            const shadowBlur = Math.abs(distanceX) + Math.abs(distanceY) + 20;
+            box.style.boxShadow = `0 15px ${shadowBlur}px rgba(0, 0, 0, 0.8), 0 0 ${shadowBlur/2}px rgba(255, 255, 255, 0.05)`;
+        });
+    });
+</script>
 {% endblock %}
