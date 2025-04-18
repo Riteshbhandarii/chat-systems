@@ -1,12 +1,16 @@
 import json
+import logging
+import datetime
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from .models import Friend, Message  # Assuming Message is in the same models.py
-import datetime
 from asgiref.sync import sync_to_async
-from .models import Groupchat, Groupmchatmessage  # Assuming these are in the same models.py
+from django.core.cache import cache
+from .models import Friend, Message, Groupchat, Groupmchatmessage
+
+logger = logging.getLogger(__name__)
+
 User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -174,12 +178,22 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
         self.group_id = self.scope["url_route"]["kwargs"]["group_id"]
-        
+
+        # Reject unauthenticated users
+        if isinstance(self.user, AnonymousUser):
+            await self.close(code=4001)  # Unauthenticated user
+            return
+
         try:
             # Fetch the group chat object
             self.group = await sync_to_async(Groupchat.objects.get)(id=self.group_id)
         except Groupchat.DoesNotExist:
             await self.close(code=4004)  # Group not found
+            return
+
+        # Check if the user is a member of the group
+        if not await sync_to_async(self.group.members.filter(id=self.user.id).exists)():
+            await self.close(code=4003)  # Not a group member
             return
 
         self.room_group_name = f"group_chat_{self.group.id}"
@@ -299,3 +313,84 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             "type": "message_read",
             "message_id": event["message_id"],
         }))
+
+
+class StatusConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+        if isinstance(self.user, AnonymousUser):
+            await self.close(code=4001)  # Unauthenticated user
+            return
+
+        # Mark user as online in Redis with a timeout
+        await self.set_user_status(self.user, True)
+
+        # Add user to their own group for status notifications
+        self.user_group = f"user_{self.user.id}"
+        await self.channel_layer.group_add(self.user_group, self.channel_name)
+
+        # Notify friends of online status
+        await self.notify_friends(self.user, True)
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if not hasattr(self, 'user') or isinstance(self.user, AnonymousUser):
+            return
+
+        # Mark user as offline in Redis
+        await self.set_user_status(self.user, False)
+
+        # Notify friends of offline status
+        await self.notify_friends(self.user, False)
+
+        # Remove from user group
+        await self.channel_layer.group_discard(self.user_group, self.channel_name)
+
+    async def receive(self, text_data):
+        try:
+            data = json.loads(text_data)
+            if data.get("type") == "ping":
+                # Handle heartbeat to keep connection alive
+                await self.set_user_status(self.user, True)
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({"error": "Invalid JSON"}))
+
+    async def status_update(self, event):
+        """Send status update to the WebSocket client"""
+        await self.send(text_data=json.dumps({
+            "type": "status_update",
+            "user_id": event["user_id"],
+            "username": event["username"],
+            "is_online": event["is_online"]
+        }))
+
+    @sync_to_async
+    def set_user_status(self, user, is_online):
+        """Store user status in Redis cache with a timeout"""
+        cache.set(f"user_status_{user.id}", is_online, timeout=30)
+
+    @sync_to_async
+    def get_friends(self, user):
+        """Fetch user's friends using the Friend model"""
+        friends = Friend.objects.filter(
+            Q(user=user) | Q(friend=user)
+        ).select_related('user', 'friend')
+        friend_ids = []
+        for f in friends:
+            friend_ids.append(f.friend.id if f.user == user else f.user.id)
+        return friend_ids
+
+    async def notify_friends(self, user, is_online):
+        """Notify all friends of the user's status change"""
+        friend_ids = await self.get_friends(user)
+        for friend_id in friend_ids:
+            await self.channel_layer.group_send(
+                f"user_{friend_id}",
+                {
+                    "type": "status_update",
+                    "user_id": user.id,
+                    "username": user.username,
+                    "is_online": is_online
+                }
+            )

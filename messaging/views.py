@@ -12,13 +12,13 @@ from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 import json
 import os
+from django.core.cache import cache  # Added for Redis status retrieval
 
 # Home view - redirects to chat if logged in, else to login
 def home_view(request):
     if request.user.is_authenticated:
         return redirect('chat_room', room_name='general')  # Redirect to chat if authenticated
     return render(request, 'messaging/home.html')  # Render home.html for unauthenticated users
-
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -50,6 +50,7 @@ def register_view(request):
     # Make sure 'your_app_name/register_template.html' matches the actual path to your template
     context = {'form': form}
     return render(request, 'messaging/register.html', context) # USE YOUR ACTUAL TEMPLATE PATH
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('chat_room', room_name='general')
@@ -130,6 +131,7 @@ def decline_friend_request(request, request_id):
 
     except Exception as e:
         return JsonResponse({"error": f"Failed to decline friend request: {str(e)}"})
+
 # User search
 @login_required
 def search_users(request):
@@ -140,7 +142,6 @@ def search_users(request):
     return JsonResponse({'users': users_data})
 
 # Friend request management
-
 @login_required
 def accept_friend_request(request, request_id):
     try:
@@ -193,7 +194,6 @@ def view_friends(request):
     return render(request, 'messaging/chat_room.html', {'friends': friends})
 
 # Group chat functionality
-
 @login_required
 def create_group_chat(request):
     print("create_group_chat view called")
@@ -273,6 +273,7 @@ def get_groups(request):
     except Exception as e:
         print(f"Error in get_groups view: {e}")
         return JsonResponse({"error": str(e)}, status=500)
+
 # views.py
 @login_required
 def add_member_to_group(request, group_id):
@@ -341,12 +342,11 @@ def get_friends(request):
     friends = Friend.objects.filter(user=request.user)
     friends_data = [{
         "id": friend.friend.id, 
-        "username": friend.friend.username
+        "username": friend.friend.username,
+        "is_online": cache.get(f"user_status_{friend.friend.id}", False)  # Fetch status from Redis
     } for friend in friends]
+    print(f"get_friends: Returning {len(friends_data)} friends for user {request.user.username}")  # Debug log
     return JsonResponse({"friends": friends_data})
-
-
-
 
 @login_required
 def delete_account(request):
@@ -359,7 +359,6 @@ def delete_account(request):
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
     return redirect('home')
-
 
 @login_required
 def user_info(request):
@@ -427,7 +426,6 @@ def user_info(request):
 
     return JsonResponse({"error": "Method not allowed."}, status=405)
 
-
 @login_required
 def get_unread_messages(request):
     """
@@ -473,7 +471,5 @@ def get_unread_messages(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
-
 def about_us(request):
     return render(request, 'messaging/about_us.html')
-
