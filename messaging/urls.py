@@ -40,6 +40,7 @@ urlpatterns = [
     # notification button
     path('get_unread_messages/', views.get_unread_messages, name='get_unread_messages'),
 
-
-
+    # link to about us
+     path('about/', views.about_us, name='about_us'),
+    
 ]

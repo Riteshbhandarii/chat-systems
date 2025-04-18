@@ -474,4 +474,6 @@ def get_unread_messages(request):
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
 
-    
+def about_us(request):
+    return render(request, 'messaging/about_us.html')
+

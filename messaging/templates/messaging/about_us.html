@@ -1,0 +1,228 @@
+{% extends 'messaging/base.html' %}
+{% block title %}About Us - UmbraChat{% endblock %}
+{% block content %}
+<style>
+    body {
+        background-color: #000000; /* Fallback */
+        background-image: linear-gradient(to bottom, #111111, #000000); /* Very dark grey to black */
+    }
+
+    .about-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        line-height: 1.6;
+    }
+
+    .about-container h2 {
+        color: #ffffff;
+        border-bottom: 2px solid #cccccc;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .about-container p {
+        margin-bottom: 15px;
+    }
+
+    .skills-box,
+    .privacy-security-box {
+        background-color: rgba(220, 220, 220, 0.1); /* Light grey with slight transparency */
+        border: 1px solid #666;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        color: #ddd;
+    }
+
+    .skills-box h3,
+    .privacy-security-box h3 {
+        color: #ffffff;
+        margin-top: 0;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #999;
+        padding-bottom: 5px;
+    }
+
+    .skills-list {
+        list-style-type: none;
+        padding-left: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .skills-list li {
+        background-color: #333;
+        color: #ddd;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 0.9em;
+        border: 1px solid #555;
+    }
+
+    .connect-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #999;
+        text-align: center;
+    }
+
+    .connect-section h3 {
+        color: #ffffff;
+        margin-bottom: 15px;
+    }
+
+    .linkedin-link {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #0077b5;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+    }
+
+    .linkedin-link:hover {
+        background-color: #005a87;
+    }
+
+    .privacy-security-list {
+        list-style-type: disc;
+        padding-left: 20px;
+        color: #ddd;
+    }
+
+    .privacy-security-list a {
+        color: #add8e6;
+        text-decoration: none;
+    }
+
+    .privacy-security-list a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="about-container">
+    <h2>About UmbraChat</h2>
+    <p>Hello there! I'm a second-year Data Engineering student, and UmbraChat is a school project I've developed for my Big Data Engineering course. The goal of this project was to apply the principles and technologies learned in the curriculum to build a real-world application that handles data efficiently and scalably.</p>
+
+    <p>You might notice UmbraChat embraces the aesthetics of the night. As a fellow night owl, I find that dark mode isn't just a preference; it's a way of life. Plus, it seemed fitting for a platform where connections spark even after the sun goes down.</p>
+
+    <p>UmbraChat is designed to be a secure and reliable messaging platform, focusing on the backend infrastructure required to manage a potentially large volume of messages and user interactions. This project allowed me to delve deep into the challenges and solutions associated with big data in a communication context.</p>
+
+    <div class="skills-box">
+        <h3>Skills Used</h3>
+        <p>The development of UmbraChat and my related coursework has involved the use of the following skills and technologies:</p>
+        <ul class="skills-list">
+            <li>Python</li>
+            <li>CSS</li>
+            <li>JavaScript</li>
+            <li>HTML</li>
+            <li>Big Data Principles</li>
+            <li>Message Queues</li>
+            <li>Message Brokers</li>
+            <li>Scalable Data Storage (PostgreSQL)</li>
+            <li>Backend Development (Django)</li>
+            <li>RESTful APIs</li>
+            <li>Distributed Systems</li>
+            <li>Data Partitioning</li>
+            <li>Database Design</li>
+            <li>User Authentication</li>
+            <li>Real-time Communication (WebSockets)</li>
+            <li>Redis</li>
+            <li>Django Channels</li>
+            <li>Daphne</li>
+        </ul>
+    </div>
+
+    <div class="privacy-security-box">
+        <h3>Privacy and Security</h3>
+        <p>Security and user privacy are important considerations for UmbraChat:</p>
+        <ul class="privacy-security-list">
+            <li>
+                <strong>Secure Password Handling:</strong> User passwords are securely handled using Django's built-in <a
+                    href="https://docs.djangoproject.com/en/stable/topics/auth/#how-django-handles-passwords"
+                    target="_blank">password hashing mechanisms</a>. This ensures that sensitive information is never stored in
+                plain text.
+            </li>
+            <li>
+                <strong>Minimal User Information:</strong> In adherence to principles similar to <a
+                    href="https://gdpr-info.eu/" target="_blank">GDPR</a>, UmbraChat is designed to collect and store only the
+                minimal amount of user information necessary for the core functionality of the messaging platform.
+            </li>
+            <li>
+                <strong>User Control over Messages:</strong> Users have the option to delete their own messages, providing control
+                over their communication history and enhancing privacy.
+            </li>
+            <li>
+                <strong>Personalized User Experience:</strong> Upon login, UmbraChat loads and displays the user's own information,
+                such as their username or any relevant profile details, ensuring a personalized and relevant experience.
+            </li>
+            <li>
+                <strong>GDPR Compliance and Consent:</strong> To comply with the General Data Protection Regulation (GDPR), users
+                are required to explicitly consent to the <a href="{% url 'privacy_policy' %}">Privacy Policy</a> during the
+                registration process. This ensures that users are informed about how their data is processed and have given
+                their agreement.
+            </li>
+            <li>
+                <strong>Privacy Policy Accessibility:</strong> A clear and comprehensive <a href="{% url 'privacy_policy' %}">Privacy
+                    Policy</a> is readily accessible to all users, outlining the data collected, its usage, and users' rights
+                regarding their personal data.
+            </li>
+        </ul>
+    </div>
+
+    <div class="skills-section">
+        <h3>Building UmbraChat: Technical Details</h3>
+        <p>The architecture of UmbraChat incorporates several key components to handle messaging efficiently:</p>
+        <ul class="skills-list" style="list-style-type: disc; padding-left: 20px;">
+            <li>
+                <strong>Real-time Communication:</strong> UmbraChat utilizes <strong>WebSockets</strong> for bidirectional, real-time
+                communication between users and the server. This allows for instant message delivery without the need for
+                constant polling.
+            </li>
+            <li>
+                <strong>Asynchronous Handling:</strong> <strong>Django Channels</strong> extends Django's capabilities to handle
+                WebSockets and other asynchronous tasks. It provides the framework for managing connections and message
+                routing.
+            </li>
+            <li>
+                <strong>WebSocket Server:</strong> <strong>Daphne</strong> serves as the ASGI (Asynchronous Server Gateway
+                Interface) server to handle incoming WebSocket connections and pass them to Django Channels for processing.
+            </li>
+            <li>
+                <strong>Message Brokering and Caching:</strong> <strong>Redis</strong> is used as a message broker to facilitate
+                communication between different parts of the application, especially for handling WebSocket messages. It can
+                also be used for caching frequently accessed data to improve performance.
+            </li>
+            <li>
+                <strong>Backend API:</strong> The backend of UmbraChat is built with <strong>Django</strong>, providing a robust
+                framework for handling user authentication, message creation, retrieval, and other core functionalities
+                through RESTful APIs.
+            </li>
+            <li>
+                <strong>Data Storage:</strong> Chat messages and user data are stored in <strong>PostgreSQL (psql)</strong>, a
+                robust and scalable relational database known for its reliability and performance. The schema is optimized for
+                efficient querying of conversations.
+            </li>
+        </ul>
+    </div>
+
+    <div class="connect-section">
+        <h3>Let's Connect!</h3>
+        <p>If you're interested in building something cool, collaborating on projects, or just want to connect, feel free to reach
+            out on LinkedIn:</p>
+        <a href="https://www.linkedin.com/in/ritesh-bhandari-0371b5294" target="_blank" class="linkedin-link">Connect on
+            LinkedIn</a>
+    </div>
+
+    <p>This project has been a valuable experience in applying data engineering concepts to build a functional application.
+        Thank you for your interest in UmbraChat!</p>
+</div>
+{% endblock %}
