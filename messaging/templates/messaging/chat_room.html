@@ -928,6 +928,9 @@ document.getElementById('search-form').addEventListener('submit', function(event
     fetchContacts();
 });
 </script>
+
+
+
 <style>
   /* --- Base Styles and Star Animations --- */
   body {
@@ -1042,26 +1045,27 @@ document.getElementById('search-form').addEventListener('submit', function(event
     color: #ffffff;
   }
 
-  /* --- Notifications --- */
-  .notifications-container {
-    position: relative;
-  }
+  Copy
+/* --- Notifications --- */
+.notifications-container {
+  position: relative;
+}
 
-  .notification-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #f44336;
-    color: #ffffff;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: bold;
-  }
+.notification-badge {
+  position: absolute;
+  top: 0; /* Align with the top of the button */
+  right: -12px; /* Shift to the right side, reduced from -8px */
+  background: #f44336;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 16px; /* Reduced size for compactness */
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem; /* Smaller font for smaller badge */
+  font-weight: bold;
+}
 
   .notifications-dropdown {
     position: absolute;
@@ -1366,6 +1370,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent overflow issues */
   }
 
   .start-messaging {
@@ -1398,6 +1403,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
     flex-direction: column;
     position: relative;
     z-index: 1;
+    overflow: hidden; /* Ensure no overflow issues */
   }
 
   .messages-container {
@@ -1406,6 +1412,8 @@ document.getElementById('search-form').addEventListener('submit', function(event
     padding: 20px;
     scrollbar-width: thin;
     scrollbar-color: #ccc transparent;
+    max-height: calc(100% - 60px); /* Account for input section height */
+    box-sizing: border-box;
   }
 
   .messages-container::-webkit-scrollbar {
@@ -1423,10 +1431,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
 
   /* --- Message Input --- */
   #message-input-section {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: relative; /* Changed from absolute to avoid breaking flex */
     background: #f5f5f5;
     padding: 12px;
     border-bottom-left-radius: 12px;
@@ -1435,6 +1440,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
     align-items: center;
     gap: 12px;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 2;
   }
 
   #chat-message-input {
@@ -1464,7 +1470,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
   /* --- Messages --- */
   .message-wrapper {
     display: flex;
-    margin-bottom: 12px;
+    margin-bottom: 20px; /* Slightly reduced for balance */
     width: 100%;
   }
 
@@ -1473,12 +1479,16 @@ document.getElementById('search-form').addEventListener('submit', function(event
   }
 
   .message-wrapper > div {
-    padding: 12px 16px;
+    padding: 12px 16px; /* Standard padding */
     border-radius: 16px;
     max-width: 70%;
     word-break: break-word;
     position: relative;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Reduced gap for tighter but clear separation */
   }
 
   .own-message > div {
@@ -1493,23 +1503,27 @@ document.getElementById('search-form').addEventListener('submit', function(event
     border-top-left-radius: 4px;
   }
 
-  .message-timestamp {
-    font-size: 0.8rem;
-    opacity: 0.7;
-    position: absolute;
-    bottom: 4px;
-    right: 8px;
-    color: inherit;
+  .message-content {
+    flex-grow: 1;
+    line-height: 1.4;
   }
-
-  .read-receipt {
-    font-size: 0.8rem;
-    opacity: 0.7;
-    position: absolute;
-    bottom: 4px;
-    left: 8px;
-    color: #ffffff;
-  }
+  .message-meta {
+  display: flex;
+  flex-direction: row !important; /* Change from column to row for horizontal alignment */
+  justify-content: flex-end; /* Align items to the right */
+  align-items: center; /* Vertically center items */
+  font-size: 0.8rem;
+  opacity: 0.7;
+  color: inherit;
+  gap: 8px; /* Add some space between timestamp and read receipt */
+}
+.read-receipt {
+  order: 1 !important;
+}
+.message-timestamp {
+  order: 2 !important;
+  color: #ffffff; /* Ensure visibility on own messages */
+}
 
   /* --- Disabled State --- */
   button:disabled {
@@ -1552,6 +1566,18 @@ document.getElementById('search-form').addEventListener('submit', function(event
 
     .notifications-dropdown {
       width: 250px;
+    }
+
+    .message-meta {
+      font-size: 0.75rem; /* Slightly smaller on mobile */
+    }
+
+    .message-wrapper > div {
+      gap: 4px; /* Tighter gap on mobile */
+    }
+
+    .messages-container {
+      max-height: calc(100% - 56px); /* Adjust for smaller input section */
     }
   }
 </style>
