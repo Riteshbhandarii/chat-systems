@@ -111,6 +111,9 @@ USE_TZ = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+# Add the CSRF_TRUSTED_ORIGINS setting:
+CSRF_TRUSTED_ORIGINS = ['https://umbrachat.up.railway.app']
+
 # Static files (Railway requirement)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
