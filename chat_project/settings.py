@@ -107,6 +107,9 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+# In your settings.py
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Static files (Railway requirement)
 STATIC_URL = '/static/'
