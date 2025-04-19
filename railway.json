@@ -1,0 +1,7 @@
+{
+    "$schema": "https://railway.app/railway.schema.json",
+    "build": {
+      "builder": "nixpacks",
+      "startCommand": "daphne -b 0.0.0.0 -p $PORT chat_project.asgi:application"
+    }
+}
