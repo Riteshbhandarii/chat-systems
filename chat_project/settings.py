@@ -6,6 +6,10 @@ Railway-ready version - Only essential deployment changes made
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
+
+# Temporary debugging: Check if DATABASE_URL is being read
+print("DATABASE_URL from environment:", os.environ.get('DATABASE_URL'))
 
 # Load environment variables (for local development)
 load_dotenv()
@@ -46,14 +50,11 @@ CHANNEL_LAYERS = {
 
 # PostgreSQL (Railway auto-configures)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGDATABASE', 'chat_project'),
-        'USER': os.getenv('PGUSER', 'chat_user'),
-        'PASSWORD': os.getenv('PGPASSWORD', ''),
-        'HOST': os.getenv('PGHOST', 'localhost'),
-        'PORT': os.getenv('PGPORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        #ssl_require=True, # Recommended for production
+        default='postgresql://chat_user:@localhost:5432/chat_project' # This is your local fallback if DATABASE_URL is NOT set
+    )
 }
 
 MIDDLEWARE = [
