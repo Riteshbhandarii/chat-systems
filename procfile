@@ -1,2 +1,2 @@
-echo "web: daphne -b 0.0.0.0 -p \$PORT chat_project.asgi:application
-worker: python manage.py runworker" > Procfile
+web: daphne -b 0.0.0.0 -p $PORT chat_project.asgi:application
+worker: python manage.py runworker --settings=chat_project.settings channels
