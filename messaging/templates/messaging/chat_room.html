@@ -560,8 +560,8 @@
           chatSocket.close();
       }
   
-      chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + friendUsername + '/');
-  
+      const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + friendUsername + '/');   
       chatSocket.onopen = function(e) {
           console.log("WebSocket connection established with", friendUsername);
       };
