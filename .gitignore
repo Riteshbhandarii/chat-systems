@@ -40,3 +40,14 @@ htmlcov/
 # Static & media files (optional – if collected/generated)
 staticfiles/
 media/
+
+# Deployment
+.env.prod
+*.env.local
+
+# Database (PostgreSQL backups)
+*.dump
+*.backup
+
+# Redis
+dump.rdb
