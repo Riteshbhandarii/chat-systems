@@ -15,7 +15,7 @@ psycopg2-binary==2.9.9  # Binary package for easier deployment
 
 ### Production Essentials ###
 whitenoise==6.9.0  # Static files
-gunicorn==22.0.0  # WSGI fallback
+# WSGI fallback
 
 ### Security ###
 cryptography==44.0.2
@@ -25,5 +25,3 @@ pyOpenSSL==25.0.0
 djangorestframework-simplejwt==5.5.0
 PyJWT==2.9.0
 
-### Development ###
-python-dotenv==1.0.1  # Can be removed in production
