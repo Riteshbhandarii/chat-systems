@@ -53,7 +53,7 @@ DATABASES = {
     'default': dj_database_url.config(
         conn_max_age=600,
         #ssl_require=True, # Recommended for production
-        default='postgresql://chat_user:@localhost:5432/chat_project' # This is your local fallback if DATABASE_URL is NOT set
+        # default='postgresql://chat_user:@localhost:5432/chat_project' # Comment this out or remove
     )
 }
 
