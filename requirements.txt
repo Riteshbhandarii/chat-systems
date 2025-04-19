@@ -13,9 +13,6 @@ redis==5.2.1  # Redis client
 ### Database ###
 psycopg2-binary==2.9.9  # Binary package for easier deployment
 
-### Production Essentials ###
-whitenoise==6.9.0  # Static files
-# WSGI fallback
 
 ### Security ###
 cryptography==44.0.2
