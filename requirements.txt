@@ -1,0 +1,29 @@
+# Core Django
+Django==5.1.6
+djangorestframework==3.16.0
+dj-database-url==2.3.0  # For Railway DB config
+
+# ASGI/WebSockets
+daphne==4.1.2
+channels==4.2.0
+channels-redis==4.2.1
+asgiref==3.8.1
+
+# Database
+psycopg2-binary==2.9.9  # More reliable than psycopg2 for deployment
+
+# Security
+cryptography==44.0.2
+pyOpenSSL==25.0.0
+
+# Production essentials
+whitenoise==6.9.0  # Static files
+gunicorn==22.0.0  # Fallback WSGI server
+redis==5.2.1  # Direct Redis client
+
+# JWT Auth (keep if you use it)
+djangorestframework-simplejwt==5.5.0
+PyJWT==2.9.0
+
+# Environment
+python-dotenv==1.0.1  # Remove in production if unused
