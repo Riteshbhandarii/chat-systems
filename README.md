@@ -1,41 +1,49 @@
-# UmbraChat – Real-Time Messaging Platform with Django Channels
+# UmbraChat – Real-Time Messaging App with Django Channels 💬
 
-UmbraChat is a real-time messaging web application built using Django Channels, WebSockets, Redis, and PostgreSQL. It supports one-on-one chats, group messaging, read receipts, friend requests, user account management, and a privacy-first design.
+**UmbraChat** is a real-time messaging web app built using Django Channels, WebSockets, Redis, and PostgreSQL. It supports private and group chats, read receipts, friend requests, user account control, and a clean dark mode interface.
 
-This project was developed as part of a Big Data Engineering course, focusing on scalable backend systems and secure user communication. With a sleek dark mode interface, UmbraChat provides a smooth and modern chat experience while prioritizing performance and data privacy.
+Built as a Big Data Engineering course project, UmbraChat focuses on scalable infrastructure, privacy-first design, and smooth real-time interactions. Whether you're chatting one-on-one or in groups, messages are delivered instantly — even at night 🌒.
 
-## Key Features
+---
 
-- One-on-one chat with read receipts
-- Group chat with member management
-- Real-time communication via WebSockets
-- Friend requests and mutual friendship validation
-- User authentication and JWT-based login
-- Delete account and download personal data (JSON)
-- GDPR-style privacy consent during registration
-- Dark mode UI with star-themed background
-- Django REST Framework APIs for backend operations
+## 🔑 Features
 
-## Technologies Used
+- One-on-one chat with real-time delivery and read receipts
+- Group chat with add/remove members
+- WebSocket-based communication via Django Channels
+- Friend requests (mutual acceptance required)
+- User registration, login, and secure authentication
+- Delete your account or download your data as JSON
+- GDPR-style privacy consent during sign-up
+- Personalized UI with dark mode and starry background
 
-- **Python** with Django 5
-- **Django Channels** for asynchronous communication
-- **Redis** as message broker
-- **Daphne** as ASGI server
-- **PostgreSQL** for relational data storage
-- **JavaScript**, **HTML**, **CSS** for frontend
-- **JWT** for secure authentication
+---
+
+## ⚙️ Technologies Used
+
+- **Python**, **Django 5**, **Django REST Framework**
+- **Django Channels**, **Redis**, **Daphne**
+- **PostgreSQL** for scalable data storage
+- **JavaScript**, **CSS**, **HTML**
+- **JWT (SimpleJWT)** for secure token-based auth
 - **Docker** for containerized deployment
 
-## Privacy and Security
+---
 
-- Passwords securely stored using Django's hashing system
-- Only minimal user data is collected and stored
-- Users can delete messages and export their data
-- Privacy Policy must be accepted on registration
-- Personal data access and deletion features implemented
+## 🔐 Privacy & GDPR Compliance
 
-## About the Project
+UmbraChat was designed with privacy in mind, following principles aligned with the **General Data Protection Regulation (GDPR)**:
 
-UmbraChat was created to explore the technical challenges of building scalable, real-time systems for communication. The backend emphasizes asynchronous architecture, message brokering, and secure data flow. A key goal of the project was to apply big data engineering principles in a meaningful and user-focused context.
+- 🔒 **Secure Password Handling** – Uses Django’s built-in hashing, never stores plain text
+- 👤 **Minimal Data Collection** – Stores only what's necessary for communication
+- 🧾 **User Control** – Delete your messages or entire account anytime
+- ✅ **Consent Required** – Users must accept the Privacy Policy to register
+- 📜 **Clear Policy Access** – Transparent documentation of how data is stored and used
+- 📁 **Downloadable User Data** – Export your personal info as JSON at any time
+
+---
+
+## 📚 About This Project
+
+UmbraChat was developed by a second-year Data Engineering student as part of a hands-on course project. The focus was on building a system that combines real-time data processing, backend scalability, and good privacy practices — all while looking good in dark mode.
 
