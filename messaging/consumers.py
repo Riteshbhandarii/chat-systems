@@ -177,85 +177,109 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
-        self.group_id = self.scope["url_route"]["kwargs"]["group_id"]
+        
+        try:
+            # Convert group_id to integer and validate
+            self.group_id = int(self.scope["url_route"]["kwargs"]["group_id"])
+        except (KeyError, ValueError, TypeError):
+            logger.error(f"Invalid group ID format: {self.scope['url_route']['kwargs'].get('group_id')}")
+            await self.close(code=4000)  # Invalid group ID format
+            return
 
         # Reject unauthenticated users
         if isinstance(self.user, AnonymousUser):
-            await self.close(code=4001)  # Unauthenticated user
+            logger.warning(f"Anonymous user attempted to connect to group {self.group_id}")
+            await self.close(code=4001)
             return
 
         try:
-            # Fetch the group chat object
+            # Get group and verify membership
             self.group = await sync_to_async(Groupchat.objects.get)(id=self.group_id)
+            
+            # Proper membership check
+            is_member = await sync_to_async(
+                lambda: self.group.members.filter(id=self.user.id).exists()
+            )()
+            
+            if not is_member:
+                logger.warning(f"User {self.user.id} is not member of group {self.group_id}")
+                await self.close(code=4003)  # Not a member
+                return
+
+            self.room_group_name = f"group_chat_{self.group.id}"
+            
+            # Join room group
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
+            logger.info(f"User {self.user.id} connected to group {self.group_id}")
+            
+            # Send previous messages
+            messages = await self.get_previous_group_messages()
+            for message in messages:
+                await self.send(text_data=json.dumps(message))
+                
         except Groupchat.DoesNotExist:
+            logger.error(f"Group {self.group_id} not found")
             await self.close(code=4004)  # Group not found
-            return
-
-        # Check if the user is a member of the group
-        if not await sync_to_async(self.group.members.filter(id=self.user.id).exists)():
-            await self.close(code=4003)  # Not a group member
-            return
-
-        self.room_group_name = f"group_chat_{self.group.id}"
-
-        # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.accept()
-
-        # Fetch previous messages
-        messages = await self.get_previous_group_messages()
-        for message_data in messages:
-            await self.send(text_data=json.dumps(message_data))
+        except Exception as e:
+            logger.error(f"Group connection error: {str(e)}")
+            await self.close(code=4000)
 
     @sync_to_async
     def get_previous_group_messages(self):
-        """Fetch previous group messages in a sync context and prepare them for sending"""
+        """Fetch previous group messages with read status"""
         messages_data = []
-        previous_messages = Groupmchatmessage.objects.filter(group_chat=self.group).order_by('timestamp')
+        previous_messages = Groupmchatmessage.objects.filter(
+            group_chat=self.group
+        ).select_related('sender').prefetch_related('read_by').order_by('timestamp')
 
         for message in previous_messages:
             messages_data.append({
+                'type': 'group_message',
                 'message': message.content,
                 'sender': message.sender.username,
+                'sender_id': message.sender.id,
                 'timestamp': message.timestamp.isoformat(),
                 'id': message.id,
-                'read_by': [user.username for user in message.read_by.all()],
+                'group_id': self.group.id,
+                'read_by': [user.id for user in message.read_by.all()],
             })
 
         return messages_data
 
     @sync_to_async
     def create_message(self, message_content):
-        """Creates a new group message in a synchronous context."""
-        return Groupmchatmessage.objects.create(
+        """Create new group message"""
+        message = Groupmchatmessage.objects.create(
             sender=self.user,
             group_chat=self.group,
             content=message_content,
             timestamp=datetime.datetime.now(),
         )
+        return message
 
     @sync_to_async
     def mark_message_seen(self, message_id):
-        """Marks a group message as read in a synchronous context."""
+        """Mark message as read by current user"""
         try:
             message = Groupmchatmessage.objects.get(id=message_id)
-            if message.read == False:
-                message.read = True
-                message.save()
+            if not message.read_by.filter(id=self.user.id).exists():
+                message.read_by.add(self.user)
                 return True
             return False
         except Groupmchatmessage.DoesNotExist:
             return False
 
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            logger.info(f"User {getattr(self, 'user', None)} disconnected from group {getattr(self, 'group_id', None)}")
 
     async def receive(self, text_data):
         try:
@@ -263,55 +287,62 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             action = data.get("action")
 
             if action == "mark_seen":
-                message_id = data.get("message_id")
-                success = await self.mark_message_seen(message_id)
-                if success:
-                    await self.channel_layer.group_send(
-                        self.room_group_name,
-                        {
-                            "type": "message_read",
-                            "message_id": message_id,
-                        }
-                    )
-            else:
-                message_content = data.get("message", "").strip()
-                if not message_content:
-                    return
-
-                # Save the new message to the database
+                if message_id := data.get("message_id"):
+                    if success := await self.mark_message_seen(message_id):
+                        await self.channel_layer.group_send(
+                            self.room_group_name,
+                            {
+                                "type": "message_read",
+                                "message_id": message_id,
+                                "reader_id": self.user.id,
+                                "reader_username": self.user.username,
+                                "group_id": self.group.id
+                            }
+                        )
+            elif message_content := data.get("message", "").strip():
                 message = await self.create_message(message_content)
-
-                # Broadcast the message to the room group
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
                         "type": "group_chat_message",
                         "message": message_content,
                         "sender": self.user.username,
+                        "sender_id": self.user.id,
                         "timestamp": message.timestamp.isoformat(),
                         "id": message.id,
+                        "group_id": self.group.id
                     }
                 )
+                    
         except json.JSONDecodeError:
             await self.send(text_data=json.dumps({"error": "Invalid JSON"}))
         except Exception as e:
-            print(f"Error in receive: {e}")
-            await self.send(text_data=json.dumps({"error": "Server error"}))
+            logger.error(f"Message handling error: {str(e)}")
+            await self.send(text_data=json.dumps({
+                "error": "Server error",
+                "details": str(e)
+            }))
 
     async def group_chat_message(self, event):
-        """Send a new group message to the WebSocket client"""
+        """Handle sending new group messages"""
         await self.send(text_data=json.dumps({
+            "type": "group_message",
             "message": event["message"],
             "sender": event["sender"],
-            "timestamp": event.get("timestamp", datetime.datetime.now().isoformat()),
+            "sender_id": event["sender_id"],
+            "timestamp": event["timestamp"],
             "id": event["id"],
+            "group_id": event["group_id"]
         }))
 
     async def message_read(self, event):
-        """Notify the client that a group message has been read"""
+        """Handle read receipts"""
         await self.send(text_data=json.dumps({
             "type": "message_read",
             "message_id": event["message_id"],
+            "reader_id": event["reader_id"],
+            "reader_username": event["reader_username"],
+            "group_id": event["group_id"]
         }))
 
 
