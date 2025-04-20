@@ -1,38 +1,41 @@
-# 💬 Real-Time Chat System
+# UmbraChat – Real-Time Messaging Platform with Django Channels
 
-A real-time chat application built with **Django**, **Django Channels**, **WebSockets**, and **Redis** — all rendered through a single-page HTML (`chat_room.html`). It supports user registration, login, and real-time messaging.
+UmbraChat is a real-time messaging web application built using Django Channels, WebSockets, Redis, and PostgreSQL. It supports one-on-one chats, group messaging, read receipts, friend requests, user account management, and a privacy-first design.
 
----
+This project was developed as part of a Big Data Engineering course, focusing on scalable backend systems and secure user communication. With a sleek dark mode interface, UmbraChat provides a smooth and modern chat experience while prioritizing performance and data privacy.
 
-## 🚀 Features
+## Key Features
 
-- 🔐 User Registration & Login
-- 🧠 Authenticated Chat Interface
-- 💬 Real-Time Messaging with WebSockets
-- ⚙️ Powered by Django Channels and Redis
-- 🧩 Single-page chat UI (`chat_room.html`)
-- 💾 Message persistence via Django ORM
+- One-on-one chat with read receipts
+- Group chat with member management
+- Real-time communication via WebSockets
+- Friend requests and mutual friendship validation
+- User authentication and JWT-based login
+- Delete account and download personal data (JSON)
+- GDPR-style privacy consent during registration
+- Dark mode UI with star-themed background
+- Django REST Framework APIs for backend operations
 
----
+## Technologies Used
 
-## 🗺️ Architecture Overview
+- **Python** with Django 5
+- **Django Channels** for asynchronous communication
+- **Redis** as message broker
+- **Daphne** as ASGI server
+- **PostgreSQL** for relational data storage
+- **JavaScript**, **HTML**, **CSS** for frontend
+- **JWT** for secure authentication
+- **Docker** for containerized deployment
 
+## Privacy and Security
 
-![Untitled diagram-2025-04-11-093030](https://github.com/user-attachments/assets/8e255f10-29fa-4a62-b9e4-b6c4ef6659e5)
+- Passwords securely stored using Django's hashing system
+- Only minimal user data is collected and stored
+- Users can delete messages and export their data
+- Privacy Policy must be accepted on registration
+- Personal data access and deletion features implemented
 
+## About the Project
 
-> The system uses WebSockets to maintain a persistent connection between the frontend and backend. Redis serves as a message broker via Django Channels' channel layer. All chat logic is handled in a single template with a JavaScript WebSocket client.
+UmbraChat was created to explore the technical challenges of building scalable, real-time systems for communication. The backend emphasizes asynchronous architecture, message brokering, and secure data flow. A key goal of the project was to apply big data engineering principles in a meaningful and user-focused context.
 
----
-
-## 🛠️ Tech Stack
-
-- **Backend**: Django, Django Channels
-- **WebSocket Layer**: ASGI, Channels Consumers
-- **Message Broker**: Redis
-- **Frontend**: HTML, CSS, JavaScript
-- **Database**: PostgreSQL (Django ORM)
-
----
-
-- **Testing Testing**; Test 1 Test 2
