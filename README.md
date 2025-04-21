@@ -24,7 +24,9 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 
 
 
+
 <img width="1294" alt="02-register-desktop" src="https://github.com/user-attachments/assets/efb3a6d7-87dc-49f2-b6ab-e9b7394cd8df" />
+
 
 
 
@@ -32,7 +34,9 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 <img width="1677" alt="03-group-chat-destop" src="https://github.com/user-attachments/assets/f41c5967-2747-4c0c-8e14-38a927d9d866" />
 
 
+
 <img width="1678" alt="04-private-chat-destop" src="https://github.com/user-attachments/assets/0d58a7d8-f0b6-4879-8944-31723105351c" />
+
 
 
 
