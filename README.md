@@ -245,15 +245,24 @@ UmbraChat is deployed on Railway, a platform that simplifies application deploym
      ```
 
 2. **Create a Railway Project**:
+```mermaid
+flowchart TD
+    A[Client] -->|WebSocket| B["Daphne ASGI Server<br/>(Railway $PORT)"]
+    A -->|HTTPS API| C["Django REST<br/>(Railway $PORT)"]
+    B -->|HTTP/WS| D[Django Channels]
+    C -->|JWT Auth| E[Authentication Service]
+    D -->|Redis Pub/Sub| F[Railway Redis]
+    D -->|Database Queries| G[Railway PostgreSQL]
+```
    - Log in to railway.app, click **New Project**, and select **Deploy from GitHub Repo**.
    - Connect your GitHub account and choose the UmbraChat repository.
 
-3. **Provision PostgreSQL and Redis**:
+4. **Provision PostgreSQL and Redis**:
    - Click **New** > **Database** > **PostgreSQL**.
    - Repeat for Redis: **New** > **Database** > **Redis**.
    - Note the `DATABASE_URL` and `REDIS_URL` in each service’s **Variables** tab.
 
-4. **Set Environment Variables**:
+5. **Set Environment Variables**:
    - In the service’s **Variables** tab, add:
      ```
      SECRET_KEY=your-secure-secret-key
@@ -261,23 +270,23 @@ UmbraChat is deployed on Railway, a platform that simplifies application deploym
      REDIS_URL=${{Redis.REDIS_URL}}
      ```
 
-5. **Configure Deployment**:
+6. **Configure Deployment**:
    - In **Settings**, set:
      - **Build Command**: `pip install -r requirements.txt`
      - **Start Command**: `daphne -b 0.0.0.0 -p $PORT umbrachat.asgi:application`
 
-6. **Deploy**:
+7. **Deploy**:
    - Push to GitHub to trigger auto-deployment.
    - (Optional) Use Railway CLI:
      ```bash
      railway up
      ```
 
-7. **Verify Deployment**:
+8. **Verify Deployment**:
    - In **Settings** > **Domains**, click **Generate Domain** (e.g., `https://umbrachat-production.up.railway.app`).
    - Visit the URL and check **Deployments** > **Logs** for errors.
 
-8. **SSL and Monitoring**:
+9. **SSL and Monitoring**:
    - Railway provides HTTPS automatically.
    - Monitor via the **Observability** tab.
 
