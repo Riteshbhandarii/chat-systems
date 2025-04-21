@@ -46,17 +46,6 @@ This section explains how to deploy and run UmbraChat locally for development or
 - (Optional) Virtual environment tool (`venv`)
 ## 🌐 System Architecture
 
-### 🖥️ Local Development
-```mermaid
-flowchart TD
-    A[Client] -->|WebSocket| B[Daphne ASGI Server\n(localhost:8001)]
-    A -->|HTTPS API| C[Django REST\n(localhost:8000)]
-    B -->|HTTP/WS| D[Django Channels]
-    C -->|JWT Auth| E[Authentication Service]
-    D -->|Redis Pub/Sub| F[Redis\n(localhost:6379)]
-    D -->|Database Queries| G[PostgreSQL\n(localhost:5432)]
-    F -->|Real-time Messaging| D
-    G -->|Data Storage| D
 
 ### Code Modifications
 To support local deployment, ensure your code is configured as follows:
