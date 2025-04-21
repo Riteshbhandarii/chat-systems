@@ -34,127 +34,209 @@ UmbraChat was designed with privacy in mind, following principles aligned with t
 ## 📚 About This Project
 UmbraChat was developed by a second-year Data Engineering student as part of a hands-on course project. The focus was on building a system that combines real-time data processing, backend scalability, and good privacy practices — all while looking good in dark mode.
 
-## 🚀 System Deployment on Railway
-
-UmbraChat is deployed on [Railway](https://railway.app), a platform that simplifies provisioning, building, and deploying applications with integrated support for databases, caching, and WebSocket connections. This section guides you through deploying UmbraChat on Railway, leveraging its GitHub integration and managed services for PostgreSQL and Redis.
-
-### Deployment Architecture
-- **Application**: Railway builds and deploys UmbraChat from a GitHub repository, using a `Dockerfile` or auto-detected Python build settings.
-- **Database**: Railway provisions a managed PostgreSQL database.
-- **Cache/Channel Layer**: Railway provisions a managed Redis instance for WebSocket communication.
-- **Networking**: Railway handles HTTP and WebSocket routing, eliminating the need for manual Nginx configuration.
-- **Scaling**: Railway automatically scales resources based on demand.
+## 🛠️ Local Deployment and Usage
+This section explains how to deploy and run UmbraChat locally for development or testing, ensuring the full source code is usable.
 
 ### Prerequisites
-- A Railway account (sign up at [railway.app](https://railway.app)). The free trial includes $5 in credits, sufficient for initial deployment.[](https://railway.com/pricing)
-- A GitHub account with the UmbraChat repository pushed to it.
-- The Railway CLI (optional, for local deployment or management).
-- Local development tools (for testing before deployment):
-  - Python 3.10+
-  - Git
+- Python 3.10+
+- PostgreSQL 15+
+- Redis 7+
+- Git
+- (Optional) Virtual environment tool (`venv`)
 
-### Deployment Steps
-1. **Set Up Local Development Environment (Optional)**:
-   - If you need to install Git or other tools locally (e.g., for cloning the repo or testing), update your package lists and install dependencies on an Ubuntu-based system:
+### Code Modifications
+To support local deployment, ensure your code is configured as follows:
+- **`requirements.txt`**: Includes `django`, `channels`, `djangorestframework`, `redis`, `psycopg2-binary`, `daphne`, and `python-dotenv`.
+- **`settings.py`**:
+  - Load environment variables using `python-dotenv`:
+    ```python
+    from pathlib import Path
+    import os
+    from dotenv import load_dotenv
+    load_dotenv()
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DATABASE_URL').split('/')[-1],
+            'USER': os.getenv('DATABASE_URL').split(':')[1].split('//')[1],
+            'PASSWORD': os.getenv('DATABASE_URL').split(':')[2].split('@')[0],
+            'HOST': os.getenv('DATABASE_URL').split('@')[1].split(':')[0],
+            'PORT': os.getenv('DATABASE_URL').split(':')[-1].split('/')[0],
+        }
+    }
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [(os.getenv('REDIS_URL').split('//')[1])],
+            },
+        },
+    }
+    ```
+  - This allows `settings.py` to use a `.env` file locally or Railway’s variables in production.
+- **`asgi.py`**: Ensure it’s set up for Django Channels (should already be correct if deployed on Railway).
+
+### Installation
+1. **Install System Dependencies** (on Ubuntu-based systems):
+   - Update package lists and install Git:
      ```bash
      sudo apt update
      sudo apt install git
      ```
-   - Install the Railway CLI if you plan to deploy from the terminal:
+2. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/<your-username>/umbrachat.git
+   cd umbrachat
+   ```
+3. **Set Up a Virtual Environment**:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+4. **Install Python Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   - If `python-dotenv` is missing, add it to `requirements.txt` and install:
      ```bash
-     sudo apt update
-     sudo apt install curl
-     curl -fsSL https://railway.app/install.sh | sh
+     echo "python-dotenv" >> requirements.txt
+     pip install python-dotenv
      ```
-   - Log in to Railway CLI:
+5. **Set Up PostgreSQL**:
+   - Install PostgreSQL:
      ```bash
-     railway login
+     sudo apt install postgresql postgresql-contrib
+     sudo systemctl start postgresql
+     sudo systemctl enable postgresql
+     ```
+   - Create a database:
+     ```bash
+     sudo -u postgres psql -c "CREATE DATABASE umbrachat_db;"
+     ```
+   - Create a user and grant privileges (replace `your-password` with a secure password):
+     ```bash
+     sudo -u postgres psql -c "CREATE USER umbrachat WITH PASSWORD 'your-password';"
+     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE umbrachat_db TO umbrachat;"
+     ```
+6. **Set Up Redis**:
+   - Install Redis:
+     ```bash
+     sudo apt install redis-server
+     sudo systemctl start redis
+     sudo systemctl enable redis
+     ```
+7. **Set Environment Variables**:
+   - Create a `.env` file in the project root:
+     ```
+     SECRET_KEY=your-django-secret-key
+     DATABASE_URL=postgresql://umbrachat:your-password@localhost:5432/umbrachat_db
+     REDIS_URL=redis://localhost:6379/0
+     ```
+   - Generate a secure `SECRET_KEY` (e.g., using `python -c "import secrets; print(secrets.token_hex(32))"`).
+8. **Apply Migrations**:
+   ```bash
+   python manage.py migrate
+   ```
+9. **Run the Application**:
+   - Start the Django development server:
+     ```bash
+     python manage.py runserver
+     ```
+   - In a separate terminal, start Daphne for WebSocket support:
+     ```bash
+     daphne -b 0.0.0.0 -p 8001 umbrachat.asgi:application
      ```
 
-2. **Clone and Prepare the Repository**:
-   - Clone your UmbraChat repository:
-     ```bash
-     git clone https://github.com/<your-username>/umbrachat.git
-     cd umbrachat
+### Usage
+- Open `http://localhost:8000` in a browser.
+- Register an account, accept the Privacy Policy, and start chatting.
+- Use the UI to send friend requests, create group chats, or manage data (e.g., export as JSON).
+- WebSockets handle real-time chat via `ws://localhost:8001`.
+
+### Troubleshooting
+- **Database Errors**: Ensure PostgreSQL is running and credentials in `.env` match `settings.py`.
+- **WebSocket Errors**: Verify Redis is running and Daphne is started on port 8001.
+- **Dependency Issues**: Check `requirements.txt` includes all packages and run `pip install -r requirements.txt`.
+
+## 🚀 System Deployment on Railway
+UmbraChat is deployed on Railway, a platform that simplifies application deployment with managed databases and WebSocket support.
+
+### Deployment Architecture
+- **Application**: Built from a GitHub repository.
+- **Database**: Managed PostgreSQL.
+- **Cache/Channel Layer**: Managed Redis for WebSockets.
+- **Networking**: Railway handles HTTP and WebSocket routing.
+- **Scaling**: Automatic resource scaling.
+
+### Prerequisites
+- Railway account (sign up at railway.app; free trial includes $5 in credits).
+- GitHub repository with UmbraChat.
+- (Optional) Railway CLI.
+
+### Deployment Steps
+1. **Prepare the Repository**:
+   - Ensure `requirements.txt` includes `django`, `channels`, `djangorestframework`, `redis`, `psycopg2-binary`, `daphne`.
+   - Add a `.python-version` file:
      ```
-   - Ensure your project includes:
-     - A `requirements.txt` file listing dependencies (e.g., `django`, `channels`, `djangorestframework`, `redis`, `psycopg2-binary`).
-     - A `Dockerfile` (optional, as Railway can auto-detect Python projects). Example:
-       ```dockerfile
-       FROM python:3.10
-       WORKDIR /app
-       COPY requirements.txt .
-       RUN pip install -r requirements.txt
-       COPY . .
-       CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "umbrachat.asgi:application"]
-       ```
-     - A `.python-version` file specifying `3.10` (if not using a `Dockerfile`), as Railway’s default Python version may be older:
-       ```
-       3.10
-       ```
+     3.10
+     ```
+   - (Optional) Add a `Dockerfile`:
+     ```dockerfile
+     FROM python:3.10
+     WORKDIR /app
+     COPY requirements.txt .
+     RUN pip install -r requirements.txt
+     COPY . .
+     CMD ["daphne", "-b", "0.0.0.0", "-p", "$PORT", "umbrachat.asgi:application"]
+     ```
+   - Push to GitHub:
+     ```bash
+     git add .
+     git commit -m "Prepare for Railway"
+     git push origin main
+     ```
 
-3. **Create a New Project on Railway**:
-   - Log in to [railway.app](https://railway.app) and click **New Project**.
-   - Select **Deploy from GitHub Repo** and connect your GitHub account.
-   - Choose the UmbraChat repository from the dropdown and click **Deploy Now**.[](https://docs.railway.com/quick-start)
+2. **Create a Railway Project**:
+   - Log in to railway.app, click **New Project**, and select **Deploy from GitHub Repo**.
+   - Connect your GitHub account and choose the UmbraChat repository.
 
-4. **Provision PostgreSQL and Redis**:
-   - In the Railway dashboard, click **New** > **Database** > **PostgreSQL**.
+3. **Provision PostgreSQL and Redis**:
+   - Click **New** > **Database** > **PostgreSQL**.
    - Repeat for Redis: **New** > **Database** > **Redis**.
-   - Railway will provision these services and provide connection URLs (e.g., `DATABASE_URL` and `REDIS_URL`) in the **Variables** tab of each service.
+   - Note the `DATABASE_URL` and `REDIS_URL` in each service’s **Variables** tab.
 
-5. **Set Environment Variables**:
-   - In your Railway project, go to the service’s **Variables** tab.
-   - Add the following, using the connection URLs from PostgreSQL and Redis:
+4. **Set Environment Variables**:
+   - In the service’s **Variables** tab, add:
      ```
      SECRET_KEY=your-secure-secret-key
      DATABASE_URL=${{Postgres.DATABASE_URL}}
      REDIS_URL=${{Redis.REDIS_URL}}
      ```
-   - Railway automatically injects database variables, but you can reference them explicitly as shown.[](https://medium.com/%40andrea.faviait/deploying-a-telegram-bot-using-chatgpt-and-whisper-apis-with-railway-ef79e6cff955)
-   - If your `settings.py` expects different variable names, adjust accordingly.
 
-6. **Configure Deployment Settings**:
-   - In the service’s **Settings** tab, ensure the **Build Command** is:
-     ```bash
-     pip install -r requirements.txt
-     ```
-   - Set the **Start Command** to run Daphne for WebSocket support:
-     ```bash
-     daphne -b 0.0.0.0 -p $PORT umbrachat.asgi:application
-     ```
-     Note: Railway sets the `PORT` environment variable automatically, so use `$PORT` in the command.[](https://docs.vendure.io/guides/deployment/deploy-to-railway/)
-   - If using a `Dockerfile`, Railway will detect it and use its `CMD` instead.
+5. **Configure Deployment**:
+   - In **Settings**, set:
+     - **Build Command**: `pip install -r requirements.txt`
+     - **Start Command**: `daphne -b 0.0.0.0 -p $PORT umbrachat.asgi:application`
 
-7. **Deploy the Application**:
-   - Commit and push any changes to your GitHub repository:
-     ```bash
-     git add .
-     git commit -m "Configure for Railway deployment"
-     git push origin main
-     ```
-   - Railway will detect the push, build, and deploy automatically.
-   - Alternatively, use the Railway CLI to deploy locally:
+6. **Deploy**:
+   - Push to GitHub to trigger auto-deployment.
+   - (Optional) Use Railway CLI:
      ```bash
      railway up
      ```
 
-8. **Verify Deployment**:
-   - Once deployed, go to the service’s **Settings** tab and click **Generate Domain** to get a public URL (e.g., `https://umbrachat-production.up.railway.app`).
-   - Visit the URL to ensure the app is running.
-   - Check **Deployments** > **Logs** for build or runtime errors if the app doesn’t load.
+7. **Verify Deployment**:
+   - In **Settings** > **Domains**, click **Generate Domain** (e.g., `https://umbrachat-production.up.railway.app`).
+   - Visit the URL and check **Deployments** > **Logs** for errors.
 
-9. **Set Up SSL (Automatic)**:
-   - Railway provides HTTPS by default for all generated domains, so no manual SSL setup (e.g., Certbot) is needed.[](https://docs.railway.com/quick-start)
-
-10. **Monitor and Scale**:
-    - Use Railway’s **Observability** tab to view logs and metrics.
-    - Railway automatically scales resources based on load, but you can adjust CPU/RAM in the **Settings** tab for Pro plans.[](https://railway.com/features)
+8. **SSL and Monitoring**:
+   - Railway provides HTTPS automatically.
+   - Monitor via the **Observability** tab.
 
 ### Deployment Notes
-- **Dockerfile vs. Nixpacks**: If you don’t provide a `Dockerfile`, Railway uses Nixpacks to build your Python app. Ensure `requirements.txt` and `.python-version` are correct to avoid version mismatches.[](https://nixpacks.com/docs/deploying/railway)
-- **Database Backups**: Use Railway’s built-in PostgreSQL backups or export data with `pg_dump` for manual backups.[](https://medium.com/%40sergethiti/deploying-a-full-stack-app-on-railway-and-netlify-a-step-by-step-guide-6786105707ab)
-- **Redis Persistence**: Configure Redis with persistence in the Railway dashboard for reliability.
-- **WebSockets**: Railway supports WebSockets natively, so no manual Nginx configuration is needed.
-- **Cost**: The free trial includes $5 in credits. After that, the Hobby plan ($5/month) covers basic usage, with additional costs for compute and storage.[](https://railway.com/pricing)
-- **Updates**: Push changes to your GitHub repository to trigger automatic redeploys.
+- **Nixpacks**: Without a `Dockerfile`, Railway uses Nixpacks. Verify `.python-version` for Python 3.10.
+- **Backups**: Enable PostgreSQL backups in Railway.
+- **Redis**: Configure persistence in Redis settings.
+- **WebSockets**: Supported natively by Railway.
+- **Cost**: Free trial covers initial deployment; Hobby plan ($5/month) for continued use.
