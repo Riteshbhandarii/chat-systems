@@ -13,47 +13,46 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 - Delete your account or download your data as JSON
 - GDPR-style privacy consent during sign-up
 - Personalized UI with dark mode and starry background
-
 ## 🖼️ Screenshot Gallery
 
 <div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
 
 ### 🔐 Authentication
-<img src="./screenshots/auth/01-login.destop.png" width="400" alt="Login Screen">  
-**Secure Login**  
-✓ Username/password auth  
-✓ Password recovery  
-✓ Clean minimalist design  
+<img src="./screenshots/auth/01-login.destop.png" width="90%" alt="Login Screen">
+<p><strong>Secure Login</strong><br>
+✓ JWT authentication<br>
+✓ Password recovery<br>
+✓ Clean minimalist design</p>
 
-<img src="./screenshots/auth/02-register-desktop.png" width="400" alt="Registration Screen">  
-**GDPR Signup**  
-✓ Privacy policy consent  
-✓ Optional email collection  
-✓ Secure password validation  
+<img src="./screenshots/auth/02-register-desktop.png" width="90%" alt="Registration Screen">
+<p><strong>GDPR Signup</strong><br>
+✓ Privacy policy consent<br>
+✓ Optional email collection<br>
+✓ Secure password validation</p>
 
 ### 💬 Messaging
-<img src="./screenshots/chat/03-group-chat-destop.png" width="400" alt="Group Chat">  
-**Group Collaboration**  
-✓ Real-time messaging  
-✓ Member identification  
-✓ Message timestamps  
+<img src="./screenshots/chat/03-group-chat-destop.png" width="90%" alt="Group Chat">
+<p><strong>Group Collaboration</strong><br>
+✓ Real-time messaging<br>
+✓ Member identification<br>
+✓ Message timestamps</p>
 
-<img src="./screenshots/chat/04-private-chat-destop.png" width="400" alt="Private Chat">  
-**Secure Conversations**  
-✓ Read receipts (✓✓)  
-✓ Online status indicators  
-✓ Message history  
+<img src="./screenshots/chat/04-private-chat-destop.png" width="90%" alt="Private Chat">
+<p><strong>Secure Conversations</strong><br>
+✓ Read receipts (✓✓)<br>
+✓ Online status indicators<br>
+✓ Message history</p>
 
 ### ⚙️ Interface
-<img src="./screenshots/ui/05-dashboard-destop.png" width="400" alt="Dashboard">  
-**User Dashboard**  
-✓ Contact management  
-✓ Notification center  
-✓ Welcome messaging  
+<img src="./screenshots/ui/05-dashboard-destop.png" width="90%" alt="Dashboard">
+<p><strong>User Dashboard</strong><br>
+✓ Contact management<br>
+✓ Notification center<br>
+✓ Welcome messaging</p>
 
 </div>
 
-*All screenshots shown at 50% scale - click to view full resolution*
+<sub>All screenshots captured in Chrome 120+ at 1920x1080 resolution</sub>
 
 *All screenshots captured in Chrome 120+ at 1920x1080 resolution*
 ## ⚙️ Technologies Used
