@@ -18,8 +18,8 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 <div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
 
 ### 🔐 Authentication
-<img src="./screenshots/auth/01-login.destop.png" width="90%" alt="Login Screen">
-<p><strong>Secure Login</strong><br>
+<img width="1088" alt="01-login-destop" src="https://github.com/user-attachments/assets/04720aa1-7721-4650-815c-2b5b211c5908" />
+
 ✓ JWT authentication<br>
 ✓ Password recovery<br>
 ✓ Clean minimalist design</p>
