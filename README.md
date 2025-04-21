@@ -1,6 +1,6 @@
 # UmbraChat – Real-Time Messaging App with Django Channels 💬
 
-UmbraChat is a real-time messaging web app built using Django Channels, WebSockets, Redis, and PostgreSQL. It supports private and group chats, read receipts, friend requests, user account control, and a clean dark mode interface.
+UmbraChat is a real-time messaging web app built using Django Channels]n, WebSockets, Redis, and PostgreSQL. It supports private and group chats, read receipts, friend requests, user account control, and a clean dark mode interface.
 
 Built as a Big Data Engineering course project, UmbraChat focuses on scalable infrastructure, privacy-first design, and smooth real-time interactions. Whether you're chatting one-on-one or in groups, messages are delivered instantly — even at night 🌒.
 
@@ -46,9 +46,12 @@ This section explains how to deploy and run UmbraChat locally for development or
 
 ### Code Modifications
 To support local deployment, ensure your code is configured as follows:
-- **`requirements.txt`**: Includes `django`, `channels`, `djangorestframework`, `redis`, `psycopg2-binary`, `daphne`, and `python-dotenv`.
-- **`settings.py`**:
-  - Load environment variables using `python-dotenv`:
+- **`requirements.txt`**: Includes `django`, `channels`, `djangorestframework`, `redis`, `psycopg2-binary`, `daphne`, and `python-dotenv`. If `python-dotenv` is missing, add it:
+  ```bash
+  echo "python-dotenv" >> requirements.txt
+  ```
+- **`settings.py`**: Load environment variables for local and Railway compatibility. Use one of these approaches:
+  - **Option 1 (Recommended)**: Parse `DATABASE_URL` and `REDIS_URL` for flexibility:
     ```python
     from pathlib import Path
     import os
@@ -74,8 +77,39 @@ To support local deployment, ensure your code is configured as follows:
         },
     }
     ```
-  - This allows `settings.py` to use a `.env` file locally or Railway’s variables in production.
-- **`asgi.py`**: Ensure it’s set up for Django Channels (should already be correct if deployed on Railway).
+  - **Option 2 (Simpler, Local-Only)**: Use explicit local settings:
+    ```python
+    from pathlib import Path
+    import os
+    from dotenv import load_dotenv
+    load_dotenv()
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'umbrachat_db',
+            'USER': 'umbrachat',
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [('localhost', 6379)],
+            },
+        },
+    }
+    ```
+- **`asgi.py`**: Ensure it’s set up for Django Channels (should be correct if deployed on Railway).
+- **Commit Changes**: After modifying `settings.py` or `requirements.txt`, push to GitHub:
+  ```bash
+  git add .
+  git commit -m "Update for local deployment"
+  git push origin main
+  ```
 
 ### Installation
 1. **Install System Dependencies** (on Ubuntu-based systems):
@@ -98,11 +132,6 @@ To support local deployment, ensure your code is configured as follows:
    ```bash
    pip install -r requirements.txt
    ```
-   - If `python-dotenv` is missing, add it to `requirements.txt` and install:
-     ```bash
-     echo "python-dotenv" >> requirements.txt
-     pip install python-dotenv
-     ```
 5. **Set Up PostgreSQL**:
    - Install PostgreSQL:
      ```bash
@@ -110,12 +139,9 @@ To support local deployment, ensure your code is configured as follows:
      sudo systemctl start postgresql
      sudo systemctl enable postgresql
      ```
-   - Create a database:
+   - Create a database and user (replace `your-password` with a secure password):
      ```bash
      sudo -u postgres psql -c "CREATE DATABASE umbrachat_db;"
-     ```
-   - Create a user and grant privileges (replace `your-password` with a secure password):
-     ```bash
      sudo -u postgres psql -c "CREATE USER umbrachat WITH PASSWORD 'your-password';"
      sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE umbrachat_db TO umbrachat;"
      ```
@@ -127,13 +153,21 @@ To support local deployment, ensure your code is configured as follows:
      sudo systemctl enable redis
      ```
 7. **Set Environment Variables**:
-   - Create a `.env` file in the project root:
+   - Create a `.env` file:
      ```
      SECRET_KEY=your-django-secret-key
      DATABASE_URL=postgresql://umbrachat:your-password@localhost:5432/umbrachat_db
      REDIS_URL=redis://localhost:6379/0
      ```
-   - Generate a secure `SECRET_KEY` (e.g., using `python -c "import secrets; print(secrets.token_hex(32))"`).
+     - For Option 2 `settings.py`, use:
+       ```
+       SECRET_KEY=your-django-secret-key
+       DB_PASSWORD=your-password
+       ```
+     - Generate a secure `SECRET_KEY`:
+       ```bash
+       python -c "import secrets; print(secrets.token_hex(32))"
+       ```
 8. **Apply Migrations**:
    ```bash
    python manage.py migrate
@@ -155,9 +189,9 @@ To support local deployment, ensure your code is configured as follows:
 - WebSockets handle real-time chat via `ws://localhost:8001`.
 
 ### Troubleshooting
-- **Database Errors**: Ensure PostgreSQL is running and credentials in `.env` match `settings.py`.
-- **WebSocket Errors**: Verify Redis is running and Daphne is started on port 8001.
-- **Dependency Issues**: Check `requirements.txt` includes all packages and run `pip install -r requirements.txt`.
+- **Database Errors**: Verify PostgreSQL is running (`sudo systemctl status postgresql`) and `.env` credentials match `settings.py`.
+- **WebSocket Errors**: Ensure Redis is running (`sudo systemctl status redis`) and Daphne is on port 8001.
+- **Dependency Errors**: Run `pip install -r requirements.txt` and check `requirements.txt` for missing packages (e.g., `python-dotenv`).
 
 ## 🚀 System Deployment on Railway
 UmbraChat is deployed on Railway, a platform that simplifies application deployment with managed databases and WebSocket support.
