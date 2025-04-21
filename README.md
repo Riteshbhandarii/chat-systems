@@ -34,6 +34,9 @@ UmbraChat was designed with privacy in mind, following principles aligned with t
 ## 📚 About This Project
 UmbraChat was developed by a second-year Data Engineering student as part of a hands-on course project. The focus was on building a system that combines real-time data processing, backend scalability, and good privacy practices — all while looking good in dark mode.
 
+## 🌐 Live Demo
+Experience UmbraChat live: [https://umbrachat-production.up.railway.app](https://umbrachat-production.up.railway.app)
+
 ## 🛠️ Local Deployment and Usage
 
 ```mermaid
@@ -295,3 +298,5 @@ flowchart TD
 - **Redis**: Configure persistence in Redis settings.
 - **WebSockets**: Supported natively by Railway.
 - **Cost**: Free trial covers initial deployment; Hobby plan ($5/month) for continued use.
+
+
