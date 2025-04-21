@@ -14,6 +14,8 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 - GDPR-style privacy consent during sign-up
 - Personalized UI with dark mode and starry background
 
+
+*All screenshots captured in Chrome 120+ at 1920x1080 resolution*
 ## ⚙️ Technologies Used
 - Python, Django 5, Django REST Framework
 - Django Channels, Redis, Daphne
@@ -37,6 +39,58 @@ UmbraChat was developed by a second-year Data Engineering student as part of a h
 ## 🌐 Live Demo
 Experience UmbraChat live: [https://umbrachat-production.up.railway.app](https://umbrachat.up.railway.app)
 
+## 🖼️ Screenshot Gallery
+
+<div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+
+### 1️⃣ Authentication
+[![01 - Login Screen](screenshots/auth/01-login-desktop.png)](screenshots/auth/01-login-desktop.png)
+**Secure Login**  
+✓ JWT Authentication  
+✓ Password Recovery Link  
+✓ Clean Error States
+
+[![02 - Registration](screenshots/auth/02-register-desktop.png)](screenshots/auth/02-register-desktop.png)  
+**GDPR-Compliant Signup**  
+✓ Privacy Policy Consent  
+✓ Optional Data Collection  
+✓ Password Validation
+
+### 2️⃣ Messaging
+[![03 - Group Chat](screenshots/chat/03-group-chat-desktop.png)](screenshots/chat/03-group-chat-desktop.png)  
+**Real-Time Group Chat**  
+✓ Member Identification  
+✓ Timestamped Messages  
+✓ Message Drafting UI
+
+[![04 - Private Chat](screenshots/chat/04-private-chat-desktop.png)](screenshots/chat/04-private-chat-desktop.png)  
+**Encrypted Private Chat**  
+✓ Read Receipts (✓✓)  
+✓ Message History  
+✓ Online Status Indicators
+
+### 3️⃣ User Interface
+[![05 - Dashboard](screenshots/ui/05-dashboard-desktop.png)](screenshots/ui/05-dashboard-desktop.png)  
+**User Control Center**  
+✓ Contact Management  
+✓ Notification Hub  
+✓ Empty State Guidance
+
+</div>
+
+<details>
+<summary>📁 View Folder Structure</summary>
+
+```bash
+screenshots/
+├── auth/
+│   ├── 01-login-desktop.png
+│   └── 02-register-desktop.png
+├── chat/
+│   ├── 03-group-chat-desktop.png
+│   └── 04-private-chat-desktop.png
+└── ui/
+    └── 05-dashboard-desktop.png
 ## 🛠️ Local Deployment and Usage
 
 ```mermaid
