@@ -18,34 +18,36 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 <div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
 
 ### 🔐 Authentication
-<img width="1088" alt="01-login-destop" src="https://github.com/user-attachments/assets/04720aa1-7721-4650-815c-2b5b211c5908" />
+<img width="1088" alt="01-login-destop" src="https://github.com/user-attachments/assets/c90c9caa-183f-4e6c-95e5-23d6431c8a70" />
+
 
 ✓ JWT authentication<br>
 ✓ Password recovery<br>
 ✓ Clean minimalist design</p>
 
-<img src="./screenshots/auth/02-register-desktop.png" width="90%" alt="Registration Screen">
-<p><strong>GDPR Signup</strong><br>
+<img width="1294" alt="02-register-desktop" src="https://github.com/user-attachments/assets/2f03feeb-acb0-4450-8954-ff80a746137e" />
+
 ✓ Privacy policy consent<br>
 ✓ Optional email collection<br>
 ✓ Secure password validation</p>
 
 ### 💬 Messaging
-<img src="./screenshots/chat/03-group-chat-destop.png" width="90%" alt="Group Chat">
-<p><strong>Group Collaboration</strong><br>
+<img width="1678" alt="04-group" src="https://github.com/user-attachments/assets/7dca738b-8789-483f-a3a4-1e706523f140" />
+
 ✓ Real-time messaging<br>
 ✓ Member identification<br>
 ✓ Message timestamps</p>
 
-<img src="./screenshots/chat/04-private-chat-destop.png" width="90%" alt="Private Chat">
+<img width="1678" alt="04-private-chat-destop" src="https://github.com/user-attachments/assets/42d627f4-d176-422e-a742-68aae98d6347" />
+
 <p><strong>Secure Conversations</strong><br>
 ✓ Read receipts (✓✓)<br>
 ✓ Online status indicators<br>
 ✓ Message history</p>
 
 ### ⚙️ Interface
-<img src="./screenshots/ui/05-dashboard-destop.png" width="90%" alt="Dashboard">
-<p><strong>User Dashboard</strong><br>
+<img width="1677" alt="05-dashboard-destop" src="https://github.com/user-attachments/assets/3971727e-a09d-4023-898f-c546a1a113ae" />
+
 ✓ Contact management<br>
 ✓ Notification center<br>
 ✓ Welcome messaging</p>
