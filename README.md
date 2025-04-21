@@ -208,7 +208,15 @@ To support local deployment, ensure your code is configured as follows:
 
 ## 🚀 System Deployment on Railway
 UmbraChat is deployed on Railway, a platform that simplifies application deployment with managed databases and WebSocket support.
-
+```mermaid
+flowchart TD
+    A[Client] -->|WebSocket| B["Daphne ASGI Server<br/>(Railway $PORT)"]
+    A -->|HTTPS API| C["Django REST<br/>(Railway $PORT)"]
+    B -->|HTTP/WS| D[Django Channels]
+    C -->|JWT Auth| E[Authentication Service]
+    D -->|Redis Pub/Sub| F[Railway Redis]
+    D -->|Database Queries| G[Railway PostgreSQL]
+```
 ### Deployment Architecture
 - **Application**: Built from a GitHub repository.
 - **Database**: Managed PostgreSQL.
@@ -245,15 +253,6 @@ UmbraChat is deployed on Railway, a platform that simplifies application deploym
      ```
 
 2. **Create a Railway Project**:
-```mermaid
-flowchart TD
-    A[Client] -->|WebSocket| B["Daphne ASGI Server<br/>(Railway $PORT)"]
-    A -->|HTTPS API| C["Django REST<br/>(Railway $PORT)"]
-    B -->|HTTP/WS| D[Django Channels]
-    C -->|JWT Auth| E[Authentication Service]
-    D -->|Redis Pub/Sub| F[Railway Redis]
-    D -->|Database Queries| G[Railway PostgreSQL]
-```
    - Log in to railway.app, click **New Project**, and select **Deploy from GitHub Repo**.
    - Connect your GitHub account and choose the UmbraChat repository.
 
