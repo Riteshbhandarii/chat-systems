@@ -18,6 +18,7 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 <div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
 
 ### 🔐 Authentication
+
 <img width="1088" alt="01-login-destop" src="https://raw.githubusercontent.com/<Riteshbhandarii>/umbrachat/main/screenshots/auth/01-login.destop.png" />
 
 
@@ -25,7 +26,7 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 ✓ Password recovery<br>
 ✓ Clean minimalist design</p>
 
-<img width="1294" alt="02-register-desktop" src="https://github.com/user-attachments/assets/2f03feeb-acb0-4450-8954-ff80a746137e" />
+
 
 ✓ Privacy policy consent<br>
 ✓ Optional email collection<br>
