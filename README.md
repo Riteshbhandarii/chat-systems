@@ -243,7 +243,9 @@ To support local deployment, ensure your code is configured as follows:
 - **Dependency Errors**: Run `pip install -r requirements.txt` and check `requirements.txt` for missing packages (e.g., `python-dotenv`).
 
 ## 🚀 System Deployment on Railway
+
 UmbraChat is deployed on Railway, a platform that simplifies application deployment with managed databases and WebSocket support.
+
 ```mermaid
 flowchart TD
     A[Client] -->|WebSocket| B["Daphne ASGI Server<br/>(Railway $PORT)"]
@@ -253,6 +255,7 @@ flowchart TD
     D -->|Redis Pub/Sub| F[Railway Redis]
     D -->|Database Queries| G[Railway PostgreSQL]
 ```
+
 ### Deployment Architecture
 - **Application**: Built from a GitHub repository.
 - **Database**: Managed PostgreSQL.
@@ -272,14 +275,39 @@ flowchart TD
      ```
      3.10
      ```
-   - (Optional) Add a `Dockerfile`:
+   - Add a `Dockerfile`:
      ```dockerfile
-     FROM python:3.10
+     FROM python:3.10-slim
+
+     # Set environment variables
+     ENV PYTHONUNBUFFERED=1 \
+         PYTHONDONTWRITEBYTECODE=1 \
+         PORT=8000 \
+         PIP_NO_CACHE_DIR=1
+
+     # Create and set working directory
      WORKDIR /app
+
+     # Install system dependencies
+     RUN apt-get update && apt-get install -y --no-install-recommends \
+         gcc \
+         python3-dev \
+         libpq-dev \
+         && rm -rf /var/lib/apt/lists/*
+
+     # Install Python dependencies
      COPY requirements.txt .
-     RUN pip install -r requirements.txt
+     RUN pip install --upgrade pip && \
+         pip install -r requirements.txt
+
+     # Copy project files
      COPY . .
-     CMD ["daphne", "-b", "0.0.0.0", "-p", "$PORT", "umbrachat.asgi:application"]
+
+     # Collect static files (if needed)
+     RUN python manage.py collectstatic --noinput
+
+     # Run Daphne ASGI server
+     CMD exec daphne -b 0.0.0.0 -p $PORT chat_project.asgi:application
      ```
    - Push to GitHub:
      ```bash
@@ -292,12 +320,12 @@ flowchart TD
    - Log in to railway.app, click **New Project**, and select **Deploy from GitHub Repo**.
    - Connect your GitHub account and choose the UmbraChat repository.
 
-4. **Provision PostgreSQL and Redis**:
+3. **Provision PostgreSQL and Redis**:
    - Click **New** > **Database** > **PostgreSQL**.
    - Repeat for Redis: **New** > **Database** > **Redis**.
    - Note the `DATABASE_URL` and `REDIS_URL` in each service’s **Variables** tab.
 
-5. **Set Environment Variables**:
+4. **Set Environment Variables**:
    - In the service’s **Variables** tab, add:
      ```
      SECRET_KEY=your-secure-secret-key
@@ -305,23 +333,21 @@ flowchart TD
      REDIS_URL=${{Redis.REDIS_URL}}
      ```
 
-6. **Configure Deployment**:
-   - In **Settings**, set:
-     - **Build Command**: `pip install -r requirements.txt`
-     - **Start Command**: `daphne -b 0.0.0.0 -p $PORT umbrachat.asgi:application`
+5. **Configure Deployment**:
+   - Railway automatically detects the `Dockerfile`. No additional build or start commands are needed.
 
-7. **Deploy**:
+6. **Deploy**:
    - Push to GitHub to trigger auto-deployment.
    - (Optional) Use Railway CLI:
      ```bash
      railway up
      ```
 
-8. **Verify Deployment**:
+7. **Verify Deployment**:
    - In **Settings** > **Domains**, click **Generate Domain** (e.g., `https://umbrachat-production.up.railway.app`).
    - Visit the URL and check **Deployments** > **Logs** for errors.
 
-9. **SSL and Monitoring**:
+8. **SSL and Monitoring**:
    - Railway provides HTTPS automatically.
    - Monitor via the **Observability** tab.
 
@@ -331,5 +357,3 @@ flowchart TD
 - **Redis**: Configure persistence in Redis settings.
 - **WebSockets**: Supported natively by Railway.
 - **Cost**: Free trial covers initial deployment; Hobby plan ($5/month) for continued use.
-
-
