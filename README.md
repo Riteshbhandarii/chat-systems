@@ -46,9 +46,7 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 
 </div>
 
-<sub>All screenshots captured in Chrome 120+ at 1920x1080 resolution</sub>
 
-*All screenshots captured in Chrome 120+ at 1920x1080 resolution*
 ## ⚙️ Technologies Used
 - Python, Django 5, Django REST Framework
 - Django Channels, Redis, Daphne
