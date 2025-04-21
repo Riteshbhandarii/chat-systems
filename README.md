@@ -19,37 +19,35 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 <div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
 
 ### 🔐 Authentication
-[![Login Screen](screenshots/auth/01-login-desktop.png)](screenshots/auth/01-login-desktop.png)
-]()
-**Secure Access**  
+[![Login Screen](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/auth/01-login-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/auth/01-login-desktop.png)  
+**Secure Login**  
 ✓ JWT authentication  
 ✓ Password recovery  
-✓ Clean error states
+✓ Clean interface  
 
-[![02 - Registration](screenshots/auth/02-register-desktop.png)](screenshots/auth/02-register-desktop.png)  
-**GDPR-Compliant Signup**  
+[![Registration](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/auth/02-register-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/auth/02-register-desktop.png)  
+**GDPR Signup**  
 ✓ Privacy policy consent  
-✓ Optional data collection  
+✓ Optional email collection  
 
 ### 💬 Messaging
-[![03 - Group Chat](screenshots/chat/03-group-chat-desktop.png)](screenshots/chat/03-group-chat-desktop.png)  
-**Collaboration Hub**  
+[![Group Chat](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/chat/03-group-chat-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/chat/03-group-chat-desktop.png)  
+**Team Collaboration**  
 ✓ Real-time updates  
 ✓ Member identification  
 
-[![04 - Private Chat](screenshots/chat/04-private-chat-desktop.png)](screenshots/chat/04-private-chat-desktop.png)  
-**Encrypted Conversations**  
-✓ Read receipts  
-✓ Status indicators  
+[![Private Chat](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/chat/04-private-chat-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/chat/04-private-chat-desktop.png)  
+**Secure Messaging**  
+✓ Read receipts (✓✓)  
+✓ Timestamped history  
 
 ### ⚙️ Interface
-[![05 - Dashboard](screenshots/ui/05-dashboard-desktop.png)](screenshots/ui/05-dashboard-desktop.png)  
-**User Control Center**  
+[![Dashboard](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/ui/05-dashboard-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/ui/05-dashboard-desktop.png)  
+**User Controls**  
 ✓ Contact management  
-✓ Notification hub  
+✓ Notification center  
 
 </div>
-
 
 *All screenshots captured in Chrome 120+ at 1920x1080 resolution*
 ## ⚙️ Technologies Used
