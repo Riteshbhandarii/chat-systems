@@ -50,7 +50,8 @@ Experience UmbraChat live: [https://umbrachat-production.up.railway.app](https:/
 ✓ Password Recovery Link  
 ✓ Clean Error States
 
-[![02 - Registration](screenshots/auth/02-register-desktop.png)](screenshots/auth/02-register-desktop.png)  
+[![02 - Registration](screenshots/auth/02-register-desktop.png)](<img width="1294" alt="02-register-desktop" src="https://github.com/user-attachments/assets/eb43520e-066d-4fcc-9e34-55cf7f8775e7" />
+)  
 **GDPR-Compliant Signup**  
 ✓ Privacy Policy Consent  
 ✓ Optional Data Collection  
