@@ -19,35 +19,41 @@ Built as a Big Data Engineering course project, UmbraChat focuses on scalable in
 <div align="center" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
 
 ### 🔐 Authentication
-[![Login Screen](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/auth/01-login-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/auth/01-login-desktop.png)  
+<img src="./screenshots/auth/01-login.destop.png" width="400" alt="Login Screen">  
 **Secure Login**  
-✓ JWT authentication  
+✓ Username/password auth  
 ✓ Password recovery  
-✓ Clean interface  
+✓ Clean minimalist design  
 
-[![Registration](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/auth/02-register-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/auth/02-register-desktop.png)  
+<img src="./screenshots/auth/02-register-desktop.png" width="400" alt="Registration Screen">  
 **GDPR Signup**  
 ✓ Privacy policy consent  
 ✓ Optional email collection  
+✓ Secure password validation  
 
 ### 💬 Messaging
-[![Group Chat](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/chat/03-group-chat-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/chat/03-group-chat-desktop.png)  
-**Team Collaboration**  
-✓ Real-time updates  
+<img src="./screenshots/chat/03-group-chat-destop.png" width="400" alt="Group Chat">  
+**Group Collaboration**  
+✓ Real-time messaging  
 ✓ Member identification  
+✓ Message timestamps  
 
-[![Private Chat](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/chat/04-private-chat-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/chat/04-private-chat-desktop.png)  
-**Secure Messaging**  
+<img src="./screenshots/chat/04-private-chat-destop.png" width="400" alt="Private Chat">  
+**Secure Conversations**  
 ✓ Read receipts (✓✓)  
-✓ Timestamped history  
+✓ Online status indicators  
+✓ Message history  
 
 ### ⚙️ Interface
-[![Dashboard](https://github.com/riteshbhandarii/chat-systems/raw/main/docs/screenshots/ui/05-dashboard-desktop.png)](https://github.com/riteshbhandarii/chat-systems/blob/main/docs/screenshots/ui/05-dashboard-desktop.png)  
-**User Controls**  
+<img src="./screenshots/ui/05-dashboard-destop.png" width="400" alt="Dashboard">  
+**User Dashboard**  
 ✓ Contact management  
 ✓ Notification center  
+✓ Welcome messaging  
 
 </div>
+
+*All screenshots shown at 50% scale - click to view full resolution*
 
 *All screenshots captured in Chrome 120+ at 1920x1080 resolution*
 ## ⚙️ Technologies Used
