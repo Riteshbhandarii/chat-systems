@@ -35,6 +35,7 @@ UmbraChat was designed with privacy in mind, following principles aligned with t
 UmbraChat was developed by a second-year Data Engineering student as part of a hands-on course project. The focus was on building a system that combines real-time data processing, backend scalability, and good privacy practices — all while looking good in dark mode.
 
 ## 🛠️ Local Deployment and Usage
+
 This section explains how to deploy and run UmbraChat locally for development or testing, ensuring the full source code is usable.
 
 ### Prerequisites
@@ -43,6 +44,19 @@ This section explains how to deploy and run UmbraChat locally for development or
 - Redis 7+
 - Git
 - (Optional) Virtual environment tool (`venv`)
+## 🌐 System Architecture
+
+### 🖥️ Local Development
+```mermaid
+flowchart TD
+    A[Client] -->|WebSocket| B[Daphne ASGI Server\n(localhost:8001)]
+    A -->|HTTPS API| C[Django REST\n(localhost:8000)]
+    B -->|HTTP/WS| D[Django Channels]
+    C -->|JWT Auth| E[Authentication Service]
+    D -->|Redis Pub/Sub| F[Redis\n(localhost:6379)]
+    D -->|Database Queries| G[PostgreSQL\n(localhost:5432)]
+    F -->|Real-time Messaging| D
+    G -->|Data Storage| D
 
 ### Code Modifications
 To support local deployment, ensure your code is configured as follows:
