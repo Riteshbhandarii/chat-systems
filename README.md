@@ -1,6 +1,6 @@
 # UmbraChat – Real-Time Messaging App with Django Channels 💬
 
-UmbraChat is a real-time messaging web app built using Django Channels]n, WebSockets, Redis, and PostgreSQL. It supports private and group chats, read receipts, friend requests, user account control, and a clean dark mode interface.
+UmbraChat is a real-time messaging web app built using Django Channels, WebSockets, Redis, and PostgreSQL. It supports private and group chats, read receipts, friend requests, user account control, and a clean dark mode interface.
 
 Built as a Big Data Engineering course project, UmbraChat focuses on scalable infrastructure, privacy-first design, and smooth real-time interactions. Whether you're chatting one-on-one or in groups, messages are delivered instantly — even at night 🌒.
 
