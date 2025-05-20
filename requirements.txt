@@ -1,5 +1,5 @@
 ### Core Django ###
-Django==4.2.13
+Django==4.2.12
 djangorestframework==3.16.0
 dj-database-url==2.3.0  # For Railway DB config
 
