@@ -8,8 +8,7 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
-# Temporary debugging: Check if DATABASE_URL is being read
-print("DATABASE_URL from environment:", os.environ.get('DATABASE_URL'))
+
 
 # Load environment variables (for local development)
 load_dotenv()
@@ -52,14 +51,13 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': dj_database_url.config(
         conn_max_age=600,
-        #ssl_require=True, # Recommended for production
-        # default='postgresql://chat_user:@localhost:5432/chat_project' # Comment this out or remove
+        ssl_require=not DEBUG  # Enable SSL in production
     )
 }
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    #"whitenoise.middleware.WhiteNoiseMiddleware",  # Added for static files
+    # "whitenoise.middleware.WhiteNoiseMiddleware",  # Uncomment if using WhiteNoise
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -120,4 +118,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-print("MIDDLEWARE ORDER:", MIDDLEWARE)

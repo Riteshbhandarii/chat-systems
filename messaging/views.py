@@ -9,9 +9,8 @@ from .forms import RegisterForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 import json
-import os
 from django.core.cache import cache  # Added for Redis status retrieval
 
 # Home view - redirects to chat if logged in, else to login
@@ -196,19 +195,13 @@ def view_friends(request):
 # Group chat functionality
 @login_required
 def create_group_chat(request):
-    print("create_group_chat view called")
     if request.method == 'POST':
-        print("Request method is POST")
         try:
-            print("Attempting to parse request body")
-            body_before_read = request.body  # Try to capture the body before reading
             data = json.loads(request.body.decode('utf-8'))
-            print("Request body parsed successfully")
             group_name = data.get('name')
             member_ids = data.get('members', [])
 
             if not group_name:
-                print("Error: Group name is missing")
                 return JsonResponse({"error": "Group name is required.", "success": False}, status=400)
 
             group_chat = Groupchat.objects.create(name=group_name, admin=request.user)
@@ -219,21 +212,16 @@ def create_group_chat(request):
                     member = User.objects.get(id=member_id)
                     group_chat.members.add(member)
                 except User.DoesNotExist:
-                    print(f"Warning: User with ID {member_id} not found.")
+                    pass  # Skip invalid user IDs
 
             group_chat.save()
-            print(f"Group '{group_name}' created successfully with ID: {group_chat.id}")
             return JsonResponse({"success": True, "message": "Group created successfully", "group_id": group_chat.id}, status=201)
 
-        except json.JSONDecodeError as e:
-            print(f"JSONDecodeError: {e}, Request body: {body_before_read.decode('utf-8') if 'body_before_read' in locals() else 'Could not read body'}")
+        except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON data in request body.", "success": False}, status=400)
-        except Exception as e:
-            print(f"Error creating group: {e}")
+        except Exception:
             return JsonResponse({"error": "Failed to create group.", "success": False}, status=500)
 
-    else:
-        print("Request method is not POST")
     return JsonResponse({"error": "Invalid request method", "success": False}, status=405)
    
 @login_required
@@ -260,18 +248,14 @@ def send_group_message(request, group_id):
 
 @login_required
 def get_groups(request):
-    print("get_groups view called")
     try:
         group_chats = Groupchat.objects.filter(members=request.user)
-        print(f"Number of groups found for user {request.user.username}: {len(group_chats)}")
         groups_data = [{
             "id": group.id,
             "name": group.name
         } for group in group_chats]
-        print(f"Groups data: {groups_data}")
         return JsonResponse({"groups": groups_data})
     except Exception as e:
-        print(f"Error in get_groups view: {e}")
         return JsonResponse({"error": str(e)}, status=500)
 
 # views.py
@@ -345,7 +329,6 @@ def get_friends(request):
         "username": friend.friend.username,
         "is_online": cache.get(f"user_status_{friend.friend.id}", False)  # Fetch status from Redis
     } for friend in friends]
-    print(f"get_friends: Returning {len(friends_data)} friends for user {request.user.username}")  # Debug log
     return JsonResponse({"friends": friends_data})
 
 @login_required
