@@ -1,27 +1,19 @@
 """
 Django settings for chat_project project.
-Railway-ready version - Only essential deployment changes made
 """
-
 from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
 
-
-
-# Load environment variables (for local development)
 load_dotenv()
 
-# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ====== Deployment Essentials ======
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-only')  # Set real one in Railway
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']  # For initial deployment (replace with your Railway URL later)
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-only')
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ['*']
 
-# ====== Original Settings Below ======
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -37,7 +29,6 @@ INSTALLED_APPS = [
 
 ASGI_APPLICATION = "chat_project.asgi.application"
 
-# Redis config (Railway will provide REDIS_URL)
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -47,17 +38,16 @@ CHANNEL_LAYERS = {
     },
 }
 
-# PostgreSQL (Railway auto-configures)
 DATABASES = {
     'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
         conn_max_age=600,
-        ssl_require=not DEBUG  # Enable SSL in production
+        ssl_require=not DEBUG
     )
 }
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # "whitenoise.middleware.WhiteNoiseMiddleware",  # Uncomment if using WhiteNoise
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -87,34 +77,26 @@ TEMPLATES = [
 WSGI_APPLICATION = "chat_project.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-# In your settings.py
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 
-# Add the CSRF_TRUSTED_ORIGINS setting:
-CSRF_TRUSTED_ORIGINS = ['https://umbrachat.up.railway.app']
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
-# Static files (Railway requirement)
+CSRF_TRUSTED_ORIGINS = ['https://umbrachat.up.railway.app'] if not DEBUG else [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000'
+]
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
